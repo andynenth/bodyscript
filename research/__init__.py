@@ -1,0 +1,1 @@
+"""Research System Enhancement Module - Advanced pose detection and analysis."""
