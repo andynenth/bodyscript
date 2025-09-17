@@ -1,0 +1,39 @@
+============================================================
+POSE ESTIMATION ANALYSIS REPORT
+============================================================
+
+Generated: 2025-09-17 02:39:48
+
+VIDEO INFORMATION:
+------------------------------
+Resolution: 640x480
+FPS: 30.0
+Duration: 3.0 seconds
+Total frames: 90
+
+DETECTION STATISTICS:
+------------------------------
+Frames processed: 90
+Frames with pose detected: 0
+Detection rate: 0.0%
+Processing speed: 30.0 fps
+
+CONFIDENCE STATISTICS:
+------------------------------
+Average confidence: 0.000
+Min confidence: 0.000
+Max confidence: 0.000
+Std deviation: 0.000
+
+QUALITY ASSESSMENT:
+------------------------------
+Overall quality: POOR
+Average landmarks per frame: 0.0
+
+RECOMMENDATIONS:
+------------------------------
+- Consider improving video quality or lighting
+- Some landmarks have low confidence, results may be unreliable
+- Many landmarks are missing, consider adjusting detection parameters
+
+============================================================
