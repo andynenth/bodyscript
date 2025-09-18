@@ -77,3 +77,12 @@ results/
 
 # Project specific
 CLAUDE.md
+
+# Frame extraction directories
+frames_validation/
+frames_comparison/
+frames_analysis/
+frames_optimized/
+frames_final/
+frames_1_30/
+frames_validation_optimized/
