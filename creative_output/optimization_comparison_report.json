@@ -1,0 +1,59 @@
+{
+  "csv_analysis": [
+    {
+      "name": "True Every Frame",
+      "total_frames": 404,
+      "avg_visibility": 0.8129515510261731,
+      "high_conf_pct": 75.54755475547555,
+      "avg_leg_visibility": 0.7043901768577571,
+      "avg_critical_visibility": 0.6225099375167179,
+      "frames_with_leg_issues": 21,
+      "frames_with_critical_issues": 4,
+      "early_frames_leg_vis": 0.6100252308432133,
+      "rotation_frames_leg_vis": 0.8544612945545287,
+      "leg_issue_rate": 5.198019801980198,
+      "critical_issue_rate": 0.9900990099009901
+    }
+  ],
+  "strategy_tests": {
+    "standard": {
+      "avg_score": 0.5450170002591151,
+      "success_rate": 46.15384615384615
+    },
+    "low_conf": {
+      "avg_score": 0.5478365805000066,
+      "success_rate": 53.84615384615385
+    },
+    "blur5": {
+      "avg_score": 0.564741584056845,
+      "success_rate": 61.53846153846154
+    },
+    "blur7": {
+      "avg_score": 0.566176516448076,
+      "success_rate": 53.84615384615385
+    },
+    "clahe": {
+      "avg_score": 0.5704698122464693,
+      "success_rate": 69.23076923076923
+    },
+    "lower_enhance": {
+      "avg_score": 0.5934451364553893,
+      "success_rate": 76.92307692307693
+    },
+    "bright": {
+      "avg_score": 0.5743653670813027,
+      "success_rate": 69.23076923076923
+    },
+    "mirror": {
+      "avg_score": 0.557152928240024,
+      "success_rate": 53.84615384615385
+    }
+  },
+  "recommendations": [
+    "Use confidence 0.1-0.2 for difficult frames",
+    "Apply lower body enhancement for leg issues",
+    "Use static_image_mode=True for rotation frames",
+    "Combine multiple strategies and pick best per frame",
+    "Focus optimization on frames with <50% leg visibility"
+  ]
+}
