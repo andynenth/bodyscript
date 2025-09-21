@@ -9,11 +9,15 @@ echo ""
 VIDEO_PATH="${1:-video/dance.mp4}"
 MODE="${2:-smart}"  # ultra_fast, fast, smart, or quality
 
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 # Extract video name without extension for unique outputs
 VIDEO_NAME=$(basename "$VIDEO_PATH" | cut -f 1 -d '.')
-FRAMES_DIR="frames_${VIDEO_NAME}"
-OUTPUT_CSV="creative_output/${VIDEO_NAME}_${MODE}.csv"
-OUTPUT_VIDEO="creative_output/${VIDEO_NAME}_${MODE}.mp4"
+FRAMES_DIR="$PROJECT_ROOT/data/frames/${VIDEO_NAME}"
+OUTPUT_CSV="$PROJECT_ROOT/output/csv/${VIDEO_NAME}_${MODE}.csv"
+OUTPUT_VIDEO="$PROJECT_ROOT/output/videos/${VIDEO_NAME}_${MODE}.mp4"
 
 echo "📹 Video: $VIDEO_PATH"
 echo "⚡ Mode: $MODE"
@@ -35,7 +39,7 @@ echo ""
 # Extract frames if needed
 if [ ! -d "$FRAMES_DIR" ]; then
     echo "Extracting frames from new video..."
-    python extract_frames.py "$VIDEO_PATH" \
+    python3 "$PROJECT_ROOT/src/video/frame_extractor.py" "$VIDEO_PATH" \
         --output "$FRAMES_DIR" \
         --interval 1 \
         --format png \
@@ -48,7 +52,10 @@ echo ""
 echo "Processing..."
 
 # Run processing
-python -c "
+cd "$PROJECT_ROOT"
+python3 -c "
+import sys
+sys.path.insert(0, 'src/processors')
 from mediapipe_fast_smart import MediaPipeFastSmart
 import time
 
@@ -68,8 +75,14 @@ print(f'📊 Average quality: {df[\"visibility\"].mean():.2%}')
 # Create video
 echo ""
 echo "Creating video..."
-python create_skeleton_video.py \
-    --video "$VIDEO_PATH" \
+# Convert relative path to absolute if needed
+if [[ "$VIDEO_PATH" = /* ]]; then
+    VIDEO_FULL_PATH="$VIDEO_PATH"
+else
+    VIDEO_FULL_PATH="$(cd "$(dirname "$VIDEO_PATH")" && pwd)/$(basename "$VIDEO_PATH")"
+fi
+python3 "$PROJECT_ROOT/src/video/skeleton_overlay.py" \
+    --video "$VIDEO_FULL_PATH" \
     --csv "$OUTPUT_CSV" \
     --output "$OUTPUT_VIDEO" \
     --no-info
