@@ -394,9 +394,9 @@
       <div class="terminal-prompt">
         $<span class="terminal-command">./bodyscript showcase --filter=all --format=grid</span>
       </div>
-      <div class="terminal-output">
-        Loading pose detection results... [OK]<br>
-        Found 10 processed videos with accuracy > 90%
+      <div class="terminal-output" id="terminalOutput">
+        Checking server status...<br>
+        <span id="serverStatus">Loading pose detection results...</span>
       </div>
     </div>
 
@@ -547,9 +547,38 @@
 
     // Check API health on page load
     window.addEventListener('DOMContentLoaded', async () => {
+      const terminalOutput = document.getElementById('terminalOutput');
+      const serverStatus = document.getElementById('serverStatus');
+
       // Check API health
       const health = await window.checkAPIHealth(true);
       console.log('API Health:', health);
+
+      // Update terminal output based on server status
+      if (health.coldStart) {
+        terminalOutput.innerHTML = `
+          Checking server status...<br>
+          <span style="color: #ffbd2e">[WARNING] Server starting up (cold start detected)</span><br>
+          <span style="color: #999">> First request after idle - warming up...</span><br>
+          <span style="color: #999">> Loading MediaPipe and OpenCV modules...</span><br>
+          <span style="color: var(--text-terminal-green)">[OK] Server ready</span><br>
+          Loading pose detection results... [OK]<br>
+          Found 10 processed videos with accuracy > 90%
+        `;
+      } else if (health.healthy) {
+        terminalOutput.innerHTML = `
+          Checking server status...<br>
+          <span style="color: var(--text-terminal-green)">[OK] Server ready (uptime: ${Math.floor(health.uptime)}s)</span><br>
+          Loading pose detection results... [OK]<br>
+          Found 10 processed videos with accuracy > 90%
+        `;
+      } else {
+        terminalOutput.innerHTML = `
+          Checking server status...<br>
+          <span style="color: #ff5f56">[ERROR] Server not responding</span><br>
+          <span style="color: #999">> Please refresh the page or try again later</span>
+        `;
+      }
 
       // Load gallery data
       // This will be updated when gallery-common.js is modified

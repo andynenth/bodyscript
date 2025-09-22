@@ -200,6 +200,12 @@ class MediaPipeFastSmart:
         if best_strategy:
             self.strategy_scores[best_strategy] = self.strategy_scores.get(best_strategy, 0) + best_score
 
+        # Ensure we always return valid values
+        if best_strategy is None:
+            best_strategy = "none"
+        if best_score is None:
+            best_score = 0.0
+
         return best_result, best_strategy, best_score
 
     def process_video_fast(self, frames_dir, output_csv, max_frames=None):
@@ -251,14 +257,20 @@ class MediaPipeFastSmart:
             # Progress update
             if (idx + 1) % 50 == 0:
                 elapsed = time.time() - start_time
-                fps = (idx + 1) / elapsed
-                eta = (len(frame_files) - idx - 1) / fps
-                print(f"Progress: {idx+1}/{len(frame_files)} | "
-                      f"FPS: {fps:.1f} | ETA: {eta:.1f}s")
+                if elapsed > 0:
+                    fps = (idx + 1) / elapsed
+                    eta = (len(frame_files) - idx - 1) / fps if fps > 0 else 0
+                    print(f"Progress: {idx+1}/{len(frame_files)} | "
+                          f"FPS: {fps:.1f} | ETA: {eta:.1f}s")
+                else:
+                    print(f"Progress: {idx+1}/{len(frame_files)}")
 
             # Print key frames
             if frame_id in [3, 50, 100, 200, 300, 400]:
-                print(f"  Frame {frame_id:3d}: {strategy:15s} (score: {score:.2f})")
+                if score is not None:
+                    print(f"  Frame {frame_id:3d}: {strategy:15s} (score: {score:.2f})")
+                else:
+                    print(f"  Frame {frame_id:3d}: {strategy:15s} (score: N/A)")
 
         # Save results
         df = pd.DataFrame(all_results)

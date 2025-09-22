@@ -1,0 +1,33 @@
+{
+  "job_id": "3ed3ec17-1a7c-4e48-9625-5b26caaf92dc",
+  "processed_at": "2025-09-22T15:17:07.227443",
+  "statistics": {
+    "frames_processed": 452,
+    "average_quality": 0.9602933400983655,
+    "detection_rate": 1.0,
+    "processing_time": 75.7061538696289,
+    "processing_mode": "fast",
+    "video_was_trimmed": true,
+    "video_was_resized": false,
+    "original_duration": 21.337732,
+    "processed_duration": 15
+  },
+  "urls": {
+    "thumbnail": "https://91cb378ba9983dc724f9898e779a55bc.r2.cloudflarestorage.com/bodyscript-uploads/3ed3ec17-1a7c-4e48-9625-5b26caaf92dc/thumbnail.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=c9097414a7147b9da102fb6dfc140449%2F20250922%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250922T221704Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=c8ef2b88526aa6d7be6fa0df5f10c5bd9e8fccfa075f54970d2a36ace438b15a",
+    "preview": "https://91cb378ba9983dc724f9898e779a55bc.r2.cloudflarestorage.com/bodyscript-uploads/3ed3ec17-1a7c-4e48-9625-5b26caaf92dc/preview.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=c9097414a7147b9da102fb6dfc140449%2F20250922%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250922T221704Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=3fd68f63b58255418e738139905024f195e489b926b655be975ee26df63fc9b3",
+    "full": "https://91cb378ba9983dc724f9898e779a55bc.r2.cloudflarestorage.com/bodyscript-uploads/3ed3ec17-1a7c-4e48-9625-5b26caaf92dc/full.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=c9097414a7147b9da102fb6dfc140449%2F20250922%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250922T221706Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=5d4e54d324e6c297c69d98cc2ddd55845bc38525edb14874903d63f80c67dbb8",
+    "csv": "https://91cb378ba9983dc724f9898e779a55bc.r2.cloudflarestorage.com/bodyscript-uploads/3ed3ec17-1a7c-4e48-9625-5b26caaf92dc/pose_data.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=c9097414a7147b9da102fb6dfc140449%2F20250922%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20250922T221707Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=8b4427c9991b77cc8a2e6c317eabcef206e007c58e17cc7b2f5fdbd802487079"
+  },
+  "video_info": {
+    "fps": 30.0,
+    "frame_count": 452,
+    "width": 720,
+    "height": 1280,
+    "duration": 15.066666666666666,
+    "codec": "h264",
+    "size": 4931251,
+    "bit_rate": 2618363,
+    "pixel_format": "yuv420p",
+    "color_space": "unknown"
+  }
+}

@@ -8,11 +8,23 @@ const Config = {
    * Get API URL based on current environment
    */
   getApiUrl: () => {
+    console.log('Location info:', {
+      hostname: window.location.hostname,
+      port: window.location.port,
+      protocol: window.location.protocol,
+      href: window.location.href
+    });
+
+    // Force local API for development
     if (window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1') {
+        window.location.hostname === '127.0.0.1' ||
+        window.location.port === '8000' ||
+        window.location.protocol === 'file:') {
+      console.log('Using LOCAL API');
       return 'http://localhost:8000';
     }
     // Production URL - Update after Render deployment
+    console.log('Using PRODUCTION API');
     return 'https://bodyscript-api.onrender.com';
   },
 
@@ -56,7 +68,8 @@ const Config = {
 };
 
 // Set global API URL
-window.API_URL = Config.getApiUrl();
+// TEMPORARY: Force local API for testing
+window.API_URL = 'http://localhost:8000';  // Config.getApiUrl();
 
 // Initialize keep-alive mechanism if enabled
 if (Config.keepAlive.enabled) {
