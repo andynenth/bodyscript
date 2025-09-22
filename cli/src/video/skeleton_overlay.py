@@ -162,8 +162,19 @@ def create_overlay_video(video_path: str,
 
     print(f"Video info: {width}x{height} @ {fps:.1f} FPS, {total_frames} frames")
 
-    # Create video writer
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    # Create video writer with compressed codec
+    # Try H264 first for better compression, fallback to mp4v if not available
+    try:
+        fourcc = cv2.VideoWriter_fourcc(*'H264')
+        print("Using H264 codec for better compression")
+    except:
+        try:
+            fourcc = cv2.VideoWriter_fourcc(*'avc1')
+            print("Using avc1 codec")
+        except:
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            print("Warning: Using mp4v codec (larger file size)")
+
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     print(f"\nProcessing frames...")

@@ -13,8 +13,8 @@ from typing import Optional, Dict, Any
 import json
 import time
 
-# Add bodyscript root to path to import existing modules
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# Add CLI modules to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../cli')))
 
 from src.processors.mediapipe_fast_smart import MediaPipeFastSmart
 from src.video.frame_extractor import extract_frames
@@ -26,7 +26,7 @@ import pandas as pd
 class WebVideoProcessor:
     """Processes videos for web service using existing processors."""
 
-    def __init__(self, temp_dir: str = "web/temp"):
+    def __init__(self, temp_dir: str = "backend/temp"):
         self.temp_dir = Path(temp_dir)
         self.temp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -213,8 +213,8 @@ class WebVideoProcessor:
     def create_skeleton_video(self, video_path: str, csv_path: str, output_path: str):
         """Create video with skeleton overlay using the same script as pipeline."""
         # Get absolute paths
-        project_root = Path(__file__).parent.parent.parent
-        skeleton_script = project_root / "src" / "video" / "skeleton_overlay.py"
+        project_root = Path(__file__).parent.parent
+        skeleton_script = project_root / "cli" / "src" / "video" / "skeleton_overlay.py"
 
         # Convert paths to absolute if they're relative
         video_abs = Path(video_path).absolute()
