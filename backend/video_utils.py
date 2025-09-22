@@ -100,7 +100,7 @@ def generate_preview(video_path: str, output_path: str,
             "ffmpeg",
             "-i", video_path,
             "-t", str(duration),  # Duration
-            "-vf", f"scale=-1:{max_height}",  # Scale to max height
+            "-vf", f"scale=-2:{max_height}",  # Scale to max height (ensure even width)
             "-c:v", "libx264",  # H.264 codec
             "-preset", settings['preset'],
             "-crf", settings['crf'],  # Quality

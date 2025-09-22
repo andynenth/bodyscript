@@ -183,6 +183,13 @@ def process_video_task(job_id: str, video_path: str):
         jobs_status[job_id]["message"] = message
         jobs_status[job_id]["status"] = "processing"
 
+        # Extract frame info from message if present
+        import re
+        frame_match = re.search(r"frame (\d+)/(\d+)", message, re.IGNORECASE)
+        if frame_match:
+            jobs_status[job_id]["current_frame"] = int(frame_match.group(1))
+            jobs_status[job_id]["total_frames"] = int(frame_match.group(2))
+
     try:
         # Update status to processing
         jobs_status[job_id]["status"] = "processing"

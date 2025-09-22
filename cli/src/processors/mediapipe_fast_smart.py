@@ -208,7 +208,7 @@ class MediaPipeFastSmart:
 
         return best_result, best_strategy, best_score
 
-    def process_video_fast(self, frames_dir, output_csv, max_frames=None):
+    def process_video_fast(self, frames_dir, output_csv, max_frames=None, progress_callback=None):
         """Fast video processing with smart strategy selection"""
 
         frames_dir = Path(frames_dir)
@@ -232,6 +232,10 @@ class MediaPipeFastSmart:
 
             if frame is None:
                 continue
+
+            # Send progress update if callback provided
+            if progress_callback:
+                progress_callback(idx + 1, len(frame_files))
 
             # Process with adaptive strategy
             result, strategy, score = self.process_frame_smart(frame, frame_id, prev_quality)

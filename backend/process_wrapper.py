@@ -31,7 +31,7 @@ from video_utils import generate_thumbnail, generate_preview, get_video_metadata
 class WebVideoProcessor:
     """Processes videos for web service using existing processors."""
 
-    def __init__(self, temp_dir: str = "backend/temp"):
+    def __init__(self, temp_dir: str = "temp"):
         self.temp_dir = Path(temp_dir)
         self.temp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -129,20 +129,26 @@ class WebVideoProcessor:
         try:
             # Step 1: Trim video to 15 seconds
             if progress_callback:
-                progress_callback(10, "Trimming video to 15 seconds...")
+                progress_callback(5, "Trimming video to 15 seconds...")
 
             trimmed_video = str(job_dir / "trimmed.mp4")
             trim_info = self.trim_video(input_video_path, trimmed_video)
 
+            if progress_callback:
+                progress_callback(10, "Video trimmed successfully")
+
             # Step 2: Reduce resolution if needed
             if progress_callback:
-                progress_callback(20, "Checking video resolution...")
+                progress_callback(12, "Checking video resolution...")
 
             was_resized = self.reduce_resolution_if_needed(trimmed_video)
 
+            if progress_callback:
+                progress_callback(15, "Starting frame extraction...")
+
             # Step 3: Extract frames
             if progress_callback:
-                progress_callback(30, "Extracting frames...")
+                progress_callback(18, "Extracting frames...")
 
             frames_dir = str(job_dir / "frames")
             frames_extracted, _ = extract_frames(
@@ -154,16 +160,24 @@ class WebVideoProcessor:
 
             # Step 4: Process with MediaPipe
             if progress_callback:
-                progress_callback(40, f"Processing {frames_extracted} frames with MediaPipe...")
+                progress_callback(25, f"Starting MediaPipe processing for {frames_extracted} frames...")
 
             processor = MediaPipeFastSmart(mode=mode)
             csv_path = str(job_dir / "pose_data.csv")
 
-            # Process frames
+            # Process frames with progress updates
+            # Create a wrapper to send progress during processing
+            def mediapipe_progress(current_frame, total_frames):
+                if progress_callback:
+                    # Scale progress from 25% to 75%
+                    progress = 25 + int((current_frame / total_frames) * 50)
+                    progress_callback(progress, f"Processing frame {current_frame}/{total_frames}...")
+
             results_df = processor.process_video_fast(
                 frames_dir,
                 csv_path,
-                max_frames=None  # Process all frames
+                max_frames=None,  # Process all frames
+                progress_callback=mediapipe_progress
             )
 
             # Calculate statistics
@@ -172,7 +186,7 @@ class WebVideoProcessor:
 
             # Step 5: Generate output video with skeleton overlay
             if progress_callback:
-                progress_callback(80, "Creating skeleton overlay video...")
+                progress_callback(76, "Creating skeleton overlay video...")
 
             output_video = str(job_dir / "output.mp4")
             self.create_skeleton_video(trimmed_video, csv_path, output_video)

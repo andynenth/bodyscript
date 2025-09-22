@@ -586,9 +586,6 @@
     </div>
   </div>
 
-  <!-- Load configuration and API health check -->
-  <script src="config.js"></script>
-
   <script>
     // Terminal typing effect
     const command = document.getElementById('typeCommand');
@@ -769,9 +766,8 @@
       const spinChars = ['|', '/', '-', '\\'];
       let spinIndex = 0;
 
-      // Initialize frame counter
-      const estimatedFrames = Math.floor(selectedFile.size / 50000); // Rough estimate
-      document.getElementById('totalFrames').textContent = estimatedFrames;
+      // Initialize frame counter (will be updated from backend)
+      document.getElementById('totalFrames').textContent = '?';
       document.getElementById('currentFrame').textContent = '0';
 
       // Animate spinner
@@ -822,12 +818,12 @@
             updateProgressBar(progress);
 
             // Update steps based on progress
-            if (progress > 20 && lastStep < 2) {
+            if (progress > 15 && lastStep < 2) {
               document.getElementById('step2').classList.add('processing');
               document.getElementById('step2').textContent = 'Extracting frames...';
               lastStep = 2;
             }
-            if (progress > 40 && lastStep < 3) {
+            if (progress > 24 && lastStep < 3) {
               document.getElementById('step2').classList.remove('processing');
               document.getElementById('step2').classList.add('success');
               document.getElementById('step2').textContent = '[OK] Frames extracted';
@@ -835,7 +831,7 @@
               document.getElementById('step3').textContent = 'Running MediaPipe detection...';
               lastStep = 3;
             }
-            if (progress > 70 && lastStep < 4) {
+            if (progress > 75 && lastStep < 4) {
               document.getElementById('step3').classList.remove('processing');
               document.getElementById('step3').classList.add('success');
               document.getElementById('step3').textContent = '[OK] Pose detection complete';
@@ -843,12 +839,12 @@
               document.getElementById('step4').textContent = 'Generating skeleton overlay...';
               lastStep = 4;
             }
-            if (progress > 90 && lastStep < 5) {
+            if (progress > 85 && lastStep < 5) {
               document.getElementById('step4').classList.remove('processing');
               document.getElementById('step4').classList.add('success');
               document.getElementById('step4').textContent = '[OK] Overlay generated';
               document.getElementById('step5').classList.add('processing');
-              document.getElementById('step5').textContent = 'Compressing output...';
+              document.getElementById('step5').textContent = 'Finalizing output...';
               lastStep = 5;
             }
 
