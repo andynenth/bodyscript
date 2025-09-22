@@ -8,6 +8,9 @@
   <!-- Font for terminal style -->
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 
+  <!-- Configuration -->
+  <script src="config.js"></script>
+
   <!-- Common styles -->
   <link rel="stylesheet" href="assets/gallery-common.css">
 
@@ -357,9 +360,28 @@
         grid-template-columns: 1fr;
       }
     }
+    /* API Status Indicator */
+    #api-status {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+      font-size: 0.85rem;
+      z-index: 1000;
+      display: none;
+    }
+    #api-status .success { color: var(--text-terminal-green); }
+    #api-status .warning { color: #ffbd2e; }
+    #api-status .error { color: #ff5f56; }
   </style>
 </head>
 <body>
+  <!-- API Status Indicator -->
+  <div id="api-status"></div>
+
   <div class="container">
     <!-- Terminal Header -->
     <div class="terminal-header">
@@ -522,6 +544,16 @@
     function createMatrixRain() {
       // Could add subtle matrix rain effect
     }
+
+    // Check API health on page load
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Check API health
+      const health = await window.checkAPIHealth(true);
+      console.log('API Health:', health);
+
+      // Load gallery data
+      // This will be updated when gallery-common.js is modified
+    });
   </script>
 </body>
 </html>

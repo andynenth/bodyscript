@@ -17,6 +17,10 @@ from typing import Dict, Any
 import json
 
 from process_wrapper import WebVideoProcessor
+from admin_routes import router as admin_router
+
+# Track startup time for uptime monitoring
+START_TIME = time.time()
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -36,6 +40,9 @@ app.add_middleware(
 
 # Initialize processor
 processor = WebVideoProcessor()
+
+# Include admin router for gallery curation
+app.include_router(admin_router)
 
 # In-memory job storage (no database for MVP)
 jobs_status: Dict[str, Any] = {}
@@ -65,12 +72,35 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for monitoring."""
+    """Enhanced health check with cold start detection and uptime."""
+    uptime_seconds = time.time() - START_TIME
+
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "jobs_in_memory": len(jobs_status)
+        "uptime_seconds": round(uptime_seconds, 2),
+        "cold_start": uptime_seconds < 60,  # True if just started
+        "jobs_in_memory": len(jobs_status),
+        "free_tier_note": "Server may sleep after 15 min inactivity on Render free tier",
+        "service": "bodyscript-api"
     }
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Pre-load heavy libraries at startup to reduce cold start time."""
+    print("Starting BodyScript API...")
+
+    # Pre-load heavy libraries
+    try:
+        import mediapipe
+        import cv2
+        import pandas
+        print("Heavy libraries loaded successfully")
+    except Exception as e:
+        print(f"Warning: Failed to pre-load some libraries: {e}")
+
+    print(f"API ready to serve requests at {datetime.now().isoformat()}")
 
 
 @app.post("/api/upload")

@@ -21,6 +21,11 @@ from src.video.frame_extractor import extract_frames
 from src.video.skeleton_overlay import load_pose_data, draw_skeleton_on_frame
 import cv2
 import pandas as pd
+from datetime import datetime
+
+# Import storage and video utilities
+from storage_r2 import r2_storage
+from video_utils import generate_thumbnail, generate_preview, get_video_metadata
 
 
 class WebVideoProcessor:
@@ -172,7 +177,56 @@ class WebVideoProcessor:
             output_video = str(job_dir / "output.mp4")
             self.create_skeleton_video(trimmed_video, csv_path, output_video)
 
-            # Step 6: Clean up frames to save space
+            # Step 6: Generate thumbnail and preview
+            if progress_callback:
+                progress_callback(85, "Generating thumbnail and preview...")
+
+            thumbnail_path = str(job_dir / "thumbnail.jpg")
+            preview_path = str(job_dir / "preview.mp4")
+
+            generate_thumbnail(output_video, thumbnail_path, size=(405, 720))
+            generate_preview(output_video, preview_path, duration=3, quality='low')
+
+            # Step 7: Upload to R2 if configured
+            urls = {}
+            if r2_storage.is_configured():
+                if progress_callback:
+                    progress_callback(90, "Uploading to cloud storage...")
+
+                # Upload all generated files
+                urls = {
+                    'thumbnail': r2_storage.upload_file(thumbnail_path, f"{job_id}/thumbnail.jpg"),
+                    'preview': r2_storage.upload_file(preview_path, f"{job_id}/preview.mp4"),
+                    'full': r2_storage.upload_file(output_video, f"{job_id}/full.mp4"),
+                    'csv': r2_storage.upload_file(csv_path, f"{job_id}/pose_data.csv")
+                }
+
+                # Create and upload metadata
+                metadata = {
+                    'job_id': job_id,
+                    'processed_at': datetime.now().isoformat(),
+                    'statistics': {
+                        'frames_processed': frames_extracted,
+                        'average_quality': float(avg_quality),
+                        'detection_rate': float(detection_rate),
+                        'processing_time': time.time() - start_time,
+                        'processing_mode': mode,
+                        'video_was_trimmed': trim_info['was_trimmed'],
+                        'video_was_resized': was_resized,
+                        'original_duration': trim_info['original_duration'],
+                        'processed_duration': trim_info['trimmed_duration']
+                    },
+                    'urls': urls,
+                    'video_info': get_video_metadata(output_video)
+                }
+
+                metadata_path = str(job_dir / "metadata.json")
+                with open(metadata_path, 'w') as f:
+                    json.dump(metadata, f, indent=2)
+
+                r2_storage.upload_file(metadata_path, f"{job_id}/metadata.json")
+
+            # Step 8: Clean up frames to save space
             shutil.rmtree(frames_dir, ignore_errors=True)
 
             if progress_callback:
@@ -185,6 +239,7 @@ class WebVideoProcessor:
                 'job_id': job_id,
                 'output_video': output_video,
                 'pose_data_csv': csv_path,
+                'urls': urls,  # Include R2 URLs
                 'statistics': {
                     'frames_processed': frames_extracted,
                     'average_quality': float(avg_quality),
