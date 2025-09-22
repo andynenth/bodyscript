@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BodyScript Gallery - TikTok Style</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Common styles -->
+  <link rel="stylesheet" href="../shared/gallery-common.css">
+
+  <!-- TikTok specific styles -->
+  <style>
+    /* TikTok Theme */
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #000;
+    }
+
+    /* Header */
+    .tiktok-header {
+      padding: 1.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 2rem;
+      position: sticky;
+      top: 0;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .tiktok-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tiktok-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #ff0050, #00f2ea);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+    }
+
+    .tiktok-search {
+      flex: 1;
+      max-width: 400px;
+      margin: 0 2rem;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 20px;
+      padding: 0.6rem 1.2rem;
+      color: white;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .search-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .tiktok-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .upload-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .upload-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .upload-btn.primary {
+      background: #ff0050;
+      border-color: #ff0050;
+    }
+
+    .upload-btn.primary:hover {
+      background: #e60045;
+      border-color: #e60045;
+    }
+
+    /* Category Tabs */
+    .category-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tab {
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+      transition: color 0.2s;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .tab:hover {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .tab.active {
+      color: white;
+    }
+
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: white;
+    }
+
+    /* Video Grid */
+    .tiktok-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    /* Video Card */
+    .tiktok-card {
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .tiktok-card:hover {
+      transform: scale(1.02);
+    }
+
+    .tiktok-card.playing {
+      transform: scale(1.05);
+      z-index: 10;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    }
+
+    .tiktok-card .video-container {
+      position: relative;
+      background: #000;
+    }
+
+    /* Video Overlay */
+    .video-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+      padding: 1.5rem 1rem;
+      color: white;
+      z-index: 2;
+    }
+
+    .creator-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .creator-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff0050, #00f2ea);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .creator-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .follow-btn {
+      margin-left: auto;
+      background: #ff0050;
+      border: none;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .follow-btn:hover {
+      background: #e60045;
+    }
+
+    .follow-btn.following {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .video-description {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-bottom: 0.5rem;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .video-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .tag {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .tag:hover {
+      color: white;
+    }
+
+    /* Interaction Buttons */
+    .interaction-panel {
+      position: absolute;
+      right: 12px;
+      bottom: 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      z-index: 3;
+    }
+
+    .interaction-btn {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .interaction-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .interaction-btn:active {
+      transform: scale(0.95);
+    }
+
+    .interaction-btn.liked {
+      animation: likeAnimation 0.5s;
+    }
+
+    @keyframes likeAnimation {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3) rotate(-10deg); }
+      100% { transform: scale(1); }
+    }
+
+    .interaction-btn.liked .btn-icon {
+      color: #ff0050;
+    }
+
+    .btn-icon {
+      font-size: 1.4rem;
+      margin-bottom: 2px;
+    }
+
+    .btn-count {
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* Live Indicator */
+    .live-indicator {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: #ff0050;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      z-index: 3;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: white;
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Progress Bar */
+    .video-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.2);
+      z-index: 4;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: white;
+      width: 0%;
+      transition: width linear;
+    }
+
+    /* Infinite Scroll Loading */
+    .loading-more {
+      text-align: center;
+      padding: 2rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+      .tiktok-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .tiktok-card {
+        border-radius: 0;
+        height: 100vh;
+        scroll-snap-align: start;
+      }
+
+      .tiktok-card .ratio-9-16 {
+        aspect-ratio: unset;
+        height: 100vh;
+      }
+
+      .tiktok-search {
+        display: none;
+      }
+
+      .category-tabs {
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 1rem;
+      }
+
+      .interaction-panel {
+        right: 8px;
+        bottom: 100px;
+      }
+
+      body {
+        scroll-snap-type: y mandatory;
+      }
+    }
+
+    /* Tablet */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .tiktok-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Swipe hint */
+    .swipe-hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+      animation: swipeUp 2s infinite;
+      z-index: 50;
+    }
+
+    @keyframes swipeUp {
+      0%, 100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+      50% { transform: translateX(-50%) translateY(-10px); opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- TikTok Header -->
+    <header class="tiktok-header">
+      <nav class="tiktok-nav">
+        <a href="#" class="tiktok-logo">
+          <div class="logo-icon">B</div>
+          <span>BodyScript</span>
+        </a>
+
+        <div class="tiktok-search">
+          <input type="text" class="search-input" placeholder="Search poses, movements, users...">
+        </div>
+
+        <div class="tiktok-actions">
+          <a href="../shared/demo-upload.html" class="upload-btn">
+            + Upload
+          </a>
+          <button class="upload-btn primary">Get App</button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+      <button class="tab filter-btn active" data-filter="all">For You</button>
+      <button class="tab filter-btn" data-filter="dance">Dance</button>
+      <button class="tab filter-btn" data-filter="sports">Sports</button>
+      <button class="tab filter-btn" data-filter="yoga">Yoga</button>
+      <button class="tab filter-btn" data-filter="martial">Combat</button>
+      <button class="tab">Following</button>
+      <button class="tab">LIVE</button>
+    </div>
+
+    <!-- Video Grid -->
+    <div class="tiktok-grid" id="videoGrid">
+      <!-- Videos will be rendered here by JavaScript -->
+    </div>
+
+    <!-- Loading More Indicator -->
+    <div class="loading-more" id="loadingMore" style="display: none;">
+      <div class="spinner"></div>
+      <p>Loading more videos...</p>
+    </div>
+
+    <!-- Swipe Hint (mobile) -->
+    <div class="swipe-hint" id="swipeHint">
+      ↑ Swipe for more
+    </div>
+  </div>
+
+  <!-- Modal for full screen video -->
+  <div class="modal">
+    <div class="modal-content">
+      <button class="modal-close">×</button>
+      <video class="modal-video" controls>
+        <source src="" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../shared/gallery-common.js"></script>
+  <script>
+    // TikTok-specific rendering
+    let isFollowing = {};
+    let isLiked = {};
+    let currentPlayingVideo = null;
+
+    function renderTikTokGallery() {
+      const grid = document.getElementById('videoGrid');
+      grid.innerHTML = '';
+
+      GalleryCommon.currentVideos.forEach((video, index) => {
+        const card = document.createElement('div');
+        card.className = 'tiktok-card video-card';
+        card.dataset.videoId = video.id;
+
+        const isLive = index === 0; // Make first video "live" for demo
+
+        card.innerHTML = `
+          <div class="video-container ratio-9-16">
+            <video class="preview-video main-video" muted loop playsinline>
+              <source src="${video.preview}" type="video/mp4">
+            </video>
+            <img class="thumbnail" src="${video.thumbnail}" alt="${video.title}">
+
+            ${isLive ? `
+              <div class="live-indicator">
+                <span class="live-dot"></span>
+                LIVE
+              </div>
+            ` : ''}
+
+            <div class="video-overlay">
+              <div class="creator-info">
+                <div class="creator-avatar">
+                  ${video.username.charAt(1).toUpperCase()}
+                </div>
+                <span class="creator-name">${video.username}</span>
+                <button class="follow-btn" data-user="${video.username}">
+                  Follow
+                </button>
+              </div>
+
+              <div class="video-description">
+                ${video.title} - AI pose detection with ${video.accuracy}% accuracy
+              </div>
+
+              <div class="video-tags">
+                ${video.tags.map(tag => `<a href="#" class="tag">${tag}</a>`).join(' ')}
+              </div>
+            </div>
+
+            <div class="interaction-panel">
+              <button class="interaction-btn like-btn" data-video="${video.id}">
+                <span class="btn-icon">♥</span>
+                <span class="btn-count">${video.likes}</span>
+              </button>
+
+              <button class="interaction-btn">
+                <span class="btn-icon">💬</span>
+                <span class="btn-count">${video.comments}</span>
+              </button>
+
+              <button class="interaction-btn">
+                <span class="btn-icon">↗</span>
+                <span class="btn-count">Share</span>
+              </button>
+
+              <button class="interaction-btn">
+                <span class="btn-icon">⋯</span>
+              </button>
+            </div>
+
+            <div class="video-progress">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      // Initialize interactions
+      initializeTikTokInteractions();
+      initializeAutoPlay();
+      GalleryCommon.initializeGallery();
+    }
+
+    function initializeTikTokInteractions() {
+      // Follow buttons
+      document.querySelectorAll('.follow-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const user = btn.dataset.user;
+
+          if (isFollowing[user]) {
+            btn.textContent = 'Follow';
+            btn.classList.remove('following');
+            isFollowing[user] = false;
+          } else {
+            btn.textContent = 'Following';
+            btn.classList.add('following');
+            isFollowing[user] = true;
+          }
+        });
+      });
+
+      // Like buttons
+      document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const videoId = btn.dataset.video;
+          const icon = btn.querySelector('.btn-icon');
+          const count = btn.querySelector('.btn-count');
+
+          if (isLiked[videoId]) {
+            btn.classList.remove('liked');
+            isLiked[videoId] = false;
+            icon.style.color = '';
+
+            // Update count
+            let currentCount = parseFloat(count.textContent);
+            if (count.textContent.includes('k')) {
+              currentCount = currentCount - 0.1;
+              count.textContent = currentCount.toFixed(1) + 'k';
+            } else {
+              count.textContent = (parseInt(count.textContent) - 1).toString();
+            }
+          } else {
+            btn.classList.add('liked');
+            isLiked[videoId] = true;
+            icon.style.color = '#ff0050';
+
+            // Update count
+            let currentCount = parseFloat(count.textContent);
+            if (count.textContent.includes('k')) {
+              currentCount = currentCount + 0.1;
+              count.textContent = currentCount.toFixed(1) + 'k';
+            } else {
+              count.textContent = (parseInt(count.textContent) + 1).toString();
+            }
+
+            // Heart animation
+            createHeartBurst(btn);
+          }
+        });
+      });
+
+      // Prevent card click on button interactions
+      document.querySelectorAll('.interaction-btn, .follow-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+      });
+    }
+
+    function createHeartBurst(button) {
+      const heart = document.createElement('div');
+      heart.innerHTML = '♥';
+      heart.style.position = 'absolute';
+      heart.style.color = '#ff0050';
+      heart.style.fontSize = '2rem';
+      heart.style.pointerEvents = 'none';
+      heart.style.animation = 'heartBurst 1s ease-out forwards';
+      heart.style.left = '50%';
+      heart.style.top = '50%';
+      heart.style.transform = 'translate(-50%, -50%)';
+
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes heartBurst {
+          0% {
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 1;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1.5);
+          }
+          100% {
+            transform: translate(-50%, -150%) scale(0.5);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+
+      button.appendChild(heart);
+      setTimeout(() => heart.remove(), 1000);
+    }
+
+    function initializeAutoPlay() {
+      const options = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.5
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const video = entry.target.querySelector('.main-video');
+          const progress = entry.target.querySelector('.progress-fill');
+
+          if (entry.isIntersecting) {
+            // Play video
+            video.play().catch(() => {});
+            entry.target.classList.add('playing');
+
+            // Animate progress bar
+            if (progress) {
+              progress.style.transition = 'width 3s linear';
+              progress.style.width = '100%';
+
+              // Loop progress
+              setInterval(() => {
+                progress.style.transition = 'none';
+                progress.style.width = '0%';
+                setTimeout(() => {
+                  progress.style.transition = 'width 3s linear';
+                  progress.style.width = '100%';
+                }, 50);
+              }, 3000);
+            }
+
+            currentPlayingVideo = video;
+          } else {
+            // Pause video
+            video.pause();
+            entry.target.classList.remove('playing');
+
+            if (progress) {
+              progress.style.width = '0%';
+            }
+          }
+        });
+      }, options);
+
+      document.querySelectorAll('.tiktok-card').forEach(card => {
+        observer.observe(card);
+      });
+    }
+
+    // Infinite scroll simulation
+    function initializeInfiniteScroll() {
+      let isLoading = false;
+
+      window.addEventListener('scroll', () => {
+        if (isLoading) return;
+
+        const scrollHeight = document.documentElement.scrollHeight;
+        const scrollTop = document.documentElement.scrollTop;
+        const clientHeight = document.documentElement.clientHeight;
+
+        if (scrollTop + clientHeight >= scrollHeight - 100) {
+          isLoading = true;
+          document.getElementById('loadingMore').style.display = 'block';
+
+          // Simulate loading more videos
+          setTimeout(() => {
+            // Could load more videos here
+            document.getElementById('loadingMore').style.display = 'none';
+            isLoading = false;
+          }, 2000);
+        }
+      });
+    }
+
+    // Override the common render function
+    GalleryCommon.renderGallery = renderTikTokGallery;
+
+    // Initialize
+    renderTikTokGallery();
+    initializeInfiniteScroll();
+
+    // Hide swipe hint after first scroll
+    let hasScrolled = false;
+    window.addEventListener('scroll', () => {
+      if (!hasScrolled && window.scrollY > 100) {
+        hasScrolled = true;
+        document.getElementById('swipeHint').style.display = 'none';
+      }
+    });
+
+    // Mobile swipe support
+    if (window.innerWidth <= 768) {
+      let touchStartY = 0;
+      let touchEndY = 0;
+
+      document.addEventListener('touchstart', (e) => {
+        touchStartY = e.changedTouches[0].screenY;
+      });
+
+      document.addEventListener('touchend', (e) => {
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+      });
+
+      function handleSwipe() {
+        if (touchEndY < touchStartY - 50) {
+          // Swipe up - next video
+          window.scrollBy({
+            top: window.innerHeight,
+            behavior: 'smooth'
+          });
+        }
+        if (touchEndY > touchStartY + 50) {
+          // Swipe down - previous video
+          window.scrollBy({
+            top: -window.innerHeight,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
