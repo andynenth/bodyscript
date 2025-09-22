@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BodyScript Terminal - Upload Video</title>
+
+  <!-- Terminal font -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Common styles -->
+  <link rel="stylesheet" href="assets/gallery-common.css">
+
+  <!-- Terminal upload styles -->
+  <style>
+    /* Terminal Theme */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #0a0a0a;
+      color: var(--text-terminal-green);
+      min-height: 100vh;
+      padding: 2rem;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0, 255, 0, 0.01) 20px, rgba(0, 255, 0, 0.01) 21px),
+        repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0, 255, 0, 0.01) 20px, rgba(0, 255, 0, 0.01) 21px);
+    }
+
+    .terminal-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Terminal Window */
+    .terminal-window {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-secondary);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 1rem;
+      background: var(--bg-terminal-header);
+      border-bottom: 1px solid var(--border-secondary);
+    }
+
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #ff5f56; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #27c93f; }
+
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Terminal Body */
+    .terminal-body {
+      padding: 2rem;
+      min-height: 600px;
+    }
+
+    .command-line {
+      margin-bottom: 1rem;
+    }
+
+    .prompt {
+      color: var(--text-terminal-green);
+      display: inline;
+    }
+
+    .command {
+      color: var(--text-primary);
+      margin-left: 0.5rem;
+      display: inline;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 20px;
+      background: var(--text-terminal-green);
+      animation: blink 1s infinite;
+      margin-left: 2px;
+      vertical-align: text-bottom;
+    }
+
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    /* ASCII Drop Zone */
+    .ascii-dropzone {
+      margin: 2rem 0;
+      padding: 3rem 2rem;
+      border: 2px dashed var(--border-secondary);
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .ascii-dropzone:hover {
+      border-color: var(--text-terminal-green);
+      background: rgba(39, 201, 63, 0.05);
+    }
+
+    .ascii-dropzone.dragover {
+      border-color: var(--text-terminal-green);
+      background: rgba(39, 201, 63, 0.1);
+      box-shadow: 0 0 20px rgba(39, 201, 63, 0.2);
+    }
+
+    .ascii-dropzone.has-file {
+      border-style: solid;
+      border-color: var(--text-terminal-green);
+    }
+
+    .ascii-art {
+      color: var(--text-terminal-green);
+      font-size: 0.9rem;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      opacity: 0.8;
+      white-space: pre;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .drop-text {
+      color: var(--text-secondary);
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .terminal-btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      border: 1px solid var(--text-terminal-green);
+      color: var(--text-terminal-green);
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .terminal-btn:hover {
+      background: var(--text-terminal-green);
+      color: #000;
+      box-shadow: 0 0 20px rgba(39, 201, 63, 0.3);
+    }
+
+    /* File Display */
+    .file-display {
+      display: none;
+      margin: 2rem 0;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+    }
+
+    .file-display.show {
+      display: block;
+    }
+
+    .file-info-line {
+      color: var(--text-secondary);
+      margin: 0.25rem 0;
+      font-size: 0.9rem;
+    }
+
+    .file-info-label {
+      color: var(--text-terminal-green);
+      display: inline-block;
+      width: 150px;
+    }
+
+    .remove-btn {
+      color: #ff5f56;
+      background: none;
+      border: 1px solid #ff5f56;
+      padding: 0.5rem 1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+    }
+
+    .remove-btn:hover {
+      background: rgba(255, 95, 86, 0.1);
+    }
+
+    /* System Info */
+    .system-info {
+      margin: 2rem 0;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+    }
+
+    .info-header {
+      color: var(--text-terminal-green);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .info-item {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin: 0.25rem 0;
+      padding-left: 1rem;
+    }
+
+    /* Terminal Output */
+    .terminal-output {
+      margin-top: 2rem;
+      max-height: 400px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+    }
+
+    .output-line {
+      margin: 0.25rem 0;
+      color: var(--text-secondary);
+      min-height: 1.2em;
+    }
+
+    .output-line.success {
+      color: var(--text-terminal-green);
+    }
+
+    .output-line.error {
+      color: #ff5f56;
+    }
+
+    .output-line.warning {
+      color: #ffbd2e;
+    }
+
+    .output-line.processing::before {
+      content: '>';
+      margin-right: 0.5rem;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ASCII Progress Bar */
+    .ascii-progress {
+      margin: 1rem 0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .progress-label {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .progress-bar-ascii {
+      color: var(--text-terminal-green);
+      font-size: 0.9rem;
+      letter-spacing: -1px;
+    }
+
+    .progress-percent {
+      color: var(--text-terminal-green);
+      margin-left: 0.5rem;
+      font-weight: 600;
+    }
+
+    /* Processing Animation */
+    .processing-animation {
+      display: none;
+      margin: 2rem 0;
+    }
+
+    .processing-animation.show {
+      display: block;
+    }
+
+    .spinner-ascii {
+      color: var(--text-terminal-green);
+      font-size: 1rem;
+      animation: spin-ascii 0.8s steps(4) infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin-ascii {
+      0% { content: '|'; }
+      25% { content: '/'; }
+      50% { content: '-'; }
+      75% { content: '\\'; }
+      100% { content: '|'; }
+    }
+
+    /* Results */
+    .results-section {
+      display: none;
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: rgba(39, 201, 63, 0.05);
+      border: 1px solid var(--text-terminal-green);
+      border-radius: 4px;
+    }
+
+    .results-section.show {
+      display: block;
+    }
+
+    .results-title {
+      color: var(--text-terminal-green);
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed rgba(39, 201, 63, 0.3);
+      color: var(--text-secondary);
+    }
+
+    .result-value {
+      color: var(--text-terminal-green);
+      font-weight: 600;
+    }
+
+    .download-section {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Back Navigation */
+    .nav-header {
+      margin-bottom: 2rem;
+    }
+
+    .back-link {
+      color: var(--text-terminal-green);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      padding: 0.5rem 1rem;
+      border: 1px solid transparent;
+    }
+
+    .back-link:hover {
+      border-color: var(--text-terminal-green);
+      background: rgba(39, 201, 63, 0.05);
+    }
+
+    /* ASCII Logo */
+    .ascii-logo-small {
+      color: var(--text-terminal-green);
+      font-size: 0.7rem;
+      line-height: 1;
+      opacity: 0.6;
+      margin-bottom: 1rem;
+      white-space: pre;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .terminal-body {
+        padding: 1rem;
+      }
+
+      .ascii-art {
+        font-size: 0.7rem;
+      }
+
+      .download-section {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal-container">
+    <!-- Navigation -->
+    <nav class="nav-header">
+      <a href="index.html" class="back-link">
+        <span>←</span> ./gallery
+      </a>
+    </nav>
+
+    <!-- Terminal Window -->
+    <div class="terminal-window">
+      <!-- Terminal Header -->
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <div class="terminal-title">bodyscript@upload:~/video</div>
+      </div>
+
+      <!-- Terminal Body -->
+      <div class="terminal-body">
+        <!-- ASCII Logo -->
+        <pre class="ascii-logo-small">
+╔════════════════════════════════════╗
+║  BODYSCRIPT v1.0.0 [UPLOAD MODULE] ║
+╚════════════════════════════════════╝</pre>
+
+        <!-- Command Line -->
+        <div class="command-line">
+          <span class="prompt">$</span>
+          <span class="command" id="typeCommand">./bodyscript upload --mode=interactive</span>
+          <span class="cursor" id="cursor"></span>
+        </div>
+
+        <!-- Terminal Output -->
+        <div class="terminal-output" id="terminalOutput">
+          <div class="output-line">Initializing upload module...</div>
+          <div class="output-line success">[OK] MediaPipe loaded</div>
+          <div class="output-line success">[OK] OpenCV initialized</div>
+          <div class="output-line success">[OK] Ready for video upload</div>
+          <div class="output-line">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+        </div>
+
+        <!-- ASCII Drop Zone -->
+        <div class="ascii-dropzone" id="dropZone">
+          <pre class="ascii-art">
+    ╭─────────────────────────╮
+    │                         │
+    │    📹  DROP VIDEO       │
+    │         HERE            │
+    │                         │
+    │    ╱│、                 │
+    │   (°､ ｡ 7              │
+    │    |、  ~ヽ              │
+    │    じしf_,)ノ           │
+    │                         │
+    ╰─────────────────────────╯</pre>
+          <div class="drop-text">
+            SUPPORTED FORMATS: MP4, MOV, AVI<br>
+            MAX SIZE: 50MB | MAX DURATION: 15s
+          </div>
+          <label>
+            <input type="file" class="file-input" id="fileInput" accept="video/mp4,video/quicktime,video/x-msvideo">
+            <span class="terminal-btn">[SELECT FILE]</span>
+          </label>
+        </div>
+
+        <!-- File Display -->
+        <div class="file-display" id="fileDisplay">
+          <div class="file-info-line">
+            <span class="file-info-label">FILENAME:</span>
+            <span id="fileName">video.mp4</span>
+          </div>
+          <div class="file-info-line">
+            <span class="file-info-label">SIZE:</span>
+            <span id="fileSize">5.2 MB</span>
+          </div>
+          <div class="file-info-line">
+            <span class="file-info-label">DURATION:</span>
+            <span id="fileDuration">--:--</span>
+          </div>
+          <div class="file-info-line">
+            <span class="file-info-label">RESOLUTION:</span>
+            <span id="fileResolution">----x----</span>
+          </div>
+          <div class="file-info-line">
+            <span class="file-info-label">STATUS:</span>
+            <span style="color: var(--text-terminal-green);">READY</span>
+          </div>
+          <button class="remove-btn" id="removeBtn">[X] REMOVE</button>
+        </div>
+
+        <!-- System Requirements -->
+        <div class="system-info">
+          <div class="info-header">SYSTEM REQUIREMENTS:</div>
+          <div class="info-item">[✓] Video format: MP4/MOV/AVI</div>
+          <div class="info-item">[✓] Maximum size: 50MB</div>
+          <div class="info-item">[✓] Maximum duration: 15 seconds</div>
+          <div class="info-item">[✓] Minimum resolution: 480p</div>
+          <div class="info-item">[✓] Clear human subjects visible</div>
+        </div>
+
+        <!-- Process Button -->
+        <div style="text-align: center; margin: 2rem 0;">
+          <button class="terminal-btn" id="processBtn" style="padding: 1rem 3rem; font-size: 1.1rem;" disabled>
+            [EXECUTE POSE DETECTION]
+          </button>
+        </div>
+
+        <!-- Processing Animation -->
+        <div class="processing-animation" id="processingAnimation">
+          <div class="terminal-output">
+            <div class="output-line processing" id="step1">Uploading video to server...</div>
+            <div class="output-line" id="step2">Extracting frames...</div>
+            <div class="output-line" id="step3">Running MediaPipe detection...</div>
+            <div class="output-line" id="step4">Generating skeleton overlay...</div>
+            <div class="output-line" id="step5">Compressing output...</div>
+          </div>
+
+          <div class="ascii-progress">
+            <div class="progress-label">PROCESSING:</div>
+            <div class="progress-bar-ascii">
+              <span id="progressBar">[░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]</span>
+              <span class="progress-percent" id="progressPercent">0%</span>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 1rem;">
+            <span class="spinner-ascii" id="spinner">|</span>
+            <span style="color: var(--text-secondary); margin-left: 0.5rem;">Processing frame <span id="currentFrame">0</span>/<span id="totalFrames">0</span></span>
+          </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+          <div class="results-title">[SUCCESS] PROCESSING COMPLETE</div>
+          <div class="result-item">
+            <span>Frames Processed:</span>
+            <span class="result-value" id="resultFrames">450</span>
+          </div>
+          <div class="result-item">
+            <span>Detection Accuracy:</span>
+            <span class="result-value" id="resultAccuracy">96.8%</span>
+          </div>
+          <div class="result-item">
+            <span>Processing Time:</span>
+            <span class="result-value" id="resultTime">12.3s</span>
+          </div>
+          <div class="result-item">
+            <span>Output Size:</span>
+            <span class="result-value" id="resultSize">8.7 MB</span>
+          </div>
+
+          <div class="download-section">
+            <a href="#" class="terminal-btn" id="downloadVideo">
+              [↓] DOWNLOAD VIDEO
+            </a>
+            <a href="#" class="terminal-btn" id="downloadCSV">
+              [↓] DOWNLOAD CSV DATA
+            </a>
+            <button class="terminal-btn" id="resetBtn">
+              [↺] PROCESS ANOTHER
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Terminal typing effect
+    const command = document.getElementById('typeCommand');
+    const cursor = document.getElementById('cursor');
+    const originalText = command.textContent;
+    command.textContent = '';
+    let charIndex = 0;
+
+    const typeCommand = () => {
+      if (charIndex < originalText.length) {
+        command.textContent += originalText[charIndex];
+        charIndex++;
+        setTimeout(typeCommand, 50);
+      } else {
+        setTimeout(() => {
+          cursor.style.display = 'none';
+          addOutputLine('', '');
+          addOutputLine('Waiting for user input...', '');
+        }, 500);
+      }
+    };
+
+    setTimeout(typeCommand, 500);
+
+    // Terminal output helper
+    function addOutputLine(text, className = '') {
+      const output = document.getElementById('terminalOutput');
+      const line = document.createElement('div');
+      line.className = `output-line ${className}`;
+      line.textContent = text;
+      output.appendChild(line);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    // File handling
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileDisplay = document.getElementById('fileDisplay');
+    const processBtn = document.getElementById('processBtn');
+    const removeBtn = document.getElementById('removeBtn');
+    let selectedFile = null;
+
+    // Drag and drop
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+      addOutputLine('> File detected. Release to upload.', 'warning');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    // File input
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    // Handle file
+    function handleFile(file) {
+      addOutputLine(`> Analyzing file: ${file.name}`, 'processing');
+
+      // Validate
+      const validTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo'];
+      if (!validTypes.includes(file.type)) {
+        addOutputLine('[ERROR] Invalid file format. Use MP4, MOV, or AVI.', 'error');
+        return;
+      }
+
+      if (file.size > 50 * 1024 * 1024) {
+        addOutputLine('[ERROR] File exceeds 50MB limit.', 'error');
+        return;
+      }
+
+      selectedFile = file;
+
+      // Display file info
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = formatFileSize(file.size);
+
+      // Create video element to get metadata
+      const video = document.createElement('video');
+      video.src = URL.createObjectURL(file);
+      video.addEventListener('loadedmetadata', () => {
+        document.getElementById('fileDuration').textContent = formatDuration(video.duration);
+        document.getElementById('fileResolution').textContent = `${video.videoWidth}x${video.videoHeight}`;
+
+        if (video.duration > 15) {
+          addOutputLine('[WARNING] Video exceeds 15s. Will be trimmed.', 'warning');
+        }
+
+        addOutputLine(`[OK] File loaded: ${file.name}`, 'success');
+        addOutputLine(`    Size: ${formatFileSize(file.size)}`, '');
+        addOutputLine(`    Duration: ${formatDuration(video.duration)}`, '');
+        addOutputLine(`    Resolution: ${video.videoWidth}x${video.videoHeight}`, '');
+      });
+
+      dropZone.classList.add('has-file');
+      fileDisplay.classList.add('show');
+      processBtn.disabled = false;
+    }
+
+    // Remove file
+    removeBtn.addEventListener('click', () => {
+      selectedFile = null;
+      fileDisplay.classList.remove('show');
+      dropZone.classList.remove('has-file');
+      processBtn.disabled = true;
+      addOutputLine('> File removed', 'warning');
+    });
+
+    // Process video
+    processBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      addOutputLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', '');
+      addOutputLine('[STARTING] Pose detection pipeline', 'success');
+
+      document.getElementById('processingAnimation').classList.add('show');
+      processBtn.disabled = true;
+
+      // Simulate processing
+      await simulateProcessing();
+    });
+
+    // Simulate processing
+    async function simulateProcessing() {
+      const steps = [
+        { id: 'step1', text: 'Uploading video to server...', duration: 2000 },
+        { id: 'step2', text: 'Extracting frames...', duration: 3000 },
+        { id: 'step3', text: 'Running MediaPipe detection...', duration: 5000 },
+        { id: 'step4', text: 'Generating skeleton overlay...', duration: 3000 },
+        { id: 'step5', text: 'Compressing output...', duration: 1000 }
+      ];
+
+      const totalFrames = Math.floor(Math.random() * 200 + 300);
+      document.getElementById('totalFrames').textContent = totalFrames;
+
+      // ASCII spinner animation
+      const spinnerChars = ['|', '/', '-', '\\'];
+      let spinIndex = 0;
+      const spinInterval = setInterval(() => {
+        document.getElementById('spinner').textContent = spinnerChars[spinIndex % 4];
+        spinIndex++;
+      }, 200);
+
+      let progress = 0;
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        const stepEl = document.getElementById(step.id);
+        stepEl.classList.add('processing');
+        stepEl.textContent = step.text;
+
+        // Update progress bar
+        const progressInterval = setInterval(() => {
+          progress = Math.min(progress + 2, ((i + 1) / steps.length) * 100);
+          updateProgressBar(progress);
+
+          // Update frame counter
+          const currentFrame = Math.floor((progress / 100) * totalFrames);
+          document.getElementById('currentFrame').textContent = currentFrame;
+        }, step.duration / 50);
+
+        await new Promise(resolve => setTimeout(resolve, step.duration));
+        clearInterval(progressInterval);
+
+        stepEl.classList.remove('processing');
+        stepEl.classList.add('success');
+        stepEl.textContent = `[OK] ${step.text.replace('...', '')} - Complete`;
+        addOutputLine(`[OK] Step ${i + 1}/${steps.length} complete`, 'success');
+      }
+
+      clearInterval(spinInterval);
+      showResults();
+    }
+
+    // Update progress bar
+    function updateProgressBar(percent) {
+      const filled = Math.floor((percent / 100) * 30);
+      const empty = 30 - filled;
+      const bar = '[' + '█'.repeat(filled) + '░'.repeat(empty) + ']';
+      document.getElementById('progressBar').textContent = bar;
+      document.getElementById('progressPercent').textContent = Math.floor(percent) + '%';
+    }
+
+    // Show results
+    function showResults() {
+      // Mock results
+      document.getElementById('resultFrames').textContent =
+        document.getElementById('totalFrames').textContent;
+      document.getElementById('resultAccuracy').textContent =
+        (90 + Math.random() * 8).toFixed(1) + '%';
+      document.getElementById('resultTime').textContent =
+        (10 + Math.random() * 5).toFixed(1) + 's';
+      document.getElementById('resultSize').textContent =
+        formatFileSize(selectedFile.size * 1.2);
+
+      document.getElementById('resultsSection').classList.add('show');
+
+      addOutputLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', '');
+      addOutputLine('[COMPLETE] Processing finished successfully', 'success');
+      addOutputLine('> Output files ready for download', '');
+
+      // Scroll to results
+      document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Reset
+    document.getElementById('resetBtn')?.addEventListener('click', () => {
+      location.reload();
+    });
+
+    // Utility functions
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function formatDuration(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+  </script>
+</body>
+</html>

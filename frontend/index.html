@@ -1,433 +1,527 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BodyScript - AI Pose Detection for Videos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .drop-zone {
-            transition: all 0.3s ease;
-        }
-        .drop-zone.dragover {
-            background-color: #dbeafe;
-            border-color: #2563eb;
-        }
-        .skeleton-animation {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BodyScript Gallery - Terminal Style</title>
+
+  <!-- Font for terminal style -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Common styles -->
+  <link rel="stylesheet" href="assets/gallery-common.css">
+
+  <!-- Terminal specific styles -->
+  <style>
+    /* Terminal Theme Overrides */
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #0a0a0a;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0, 255, 0, 0.01) 20px, rgba(0, 255, 0, 0.01) 21px),
+        repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0, 255, 0, 0.01) 20px, rgba(0, 255, 0, 0.01) 21px);
+    }
+
+    /* Terminal Header */
+    .terminal-header {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-secondary);
+      border-radius: 8px 8px 0 0;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-secondary);
+    }
+
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #ff5f56; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #27c93f; }
+
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .terminal-prompt {
+      color: var(--text-terminal-green);
+      font-size: 1rem;
+    }
+
+    .terminal-command {
+      color: var(--text-primary);
+      margin-left: 0.5rem;
+    }
+
+    .terminal-output {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      opacity: 0.8;
+    }
+
+    /* Terminal Navigation */
+    .terminal-nav {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .terminal-filters {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .terminal-filter {
+      background: transparent;
+      border: 1px solid var(--border-secondary);
+      color: var(--text-secondary);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+    }
+
+    .terminal-filter:hover {
+      background: rgba(39, 201, 63, 0.1);
+      border-color: var(--text-terminal-green);
+      color: var(--text-terminal-green);
+    }
+
+    .terminal-filter.active {
+      background: var(--text-terminal-green);
+      color: #000;
+      border-color: var(--text-terminal-green);
+      font-weight: 600;
+    }
+
+    .terminal-demo-btn {
+      background: var(--text-terminal-green);
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .terminal-demo-btn:hover {
+      background: #22b839;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(39, 201, 63, 0.3);
+    }
+
+    /* Video Grid */
+    .terminal-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    /* Terminal Video Card */
+    .terminal-card {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: all 0.3s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .terminal-card:hover {
+      border-color: var(--text-terminal-green);
+      box-shadow: 0 0 20px rgba(39, 201, 63, 0.2);
+      transform: translateY(-4px);
+    }
+
+    .terminal-card .video-container {
+      position: relative;
+      background: #000;
+    }
+
+    .terminal-card:hover .video-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 2px solid var(--text-terminal-green);
+      z-index: 4;
+      pointer-events: none;
+      animation: glitch 0.3s;
+    }
+
+    @keyframes glitch {
+      0%, 100% { opacity: 1; }
+      25% { opacity: 0.8; transform: translate(2px, -2px); }
+      50% { opacity: 0.9; transform: translate(-2px, 2px); }
+      75% { opacity: 0.85; transform: translate(1px, -1px); }
+    }
+
+    .ascii-play {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--text-terminal-green);
+      font-size: 3rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 3;
+      text-shadow: 0 0 10px rgba(39, 201, 63, 0.8);
+    }
+
+    .terminal-card:hover .ascii-play {
+      opacity: 0.8;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    .terminal-info {
+      padding: 0.75rem;
+      background: rgba(0, 0, 0, 0.5);
+      border-top: 1px solid var(--border-secondary);
+    }
+
+    .filename {
+      color: var(--text-terminal-green);
+      font-size: 0.85rem;
+      display: block;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .accuracy {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .accuracy-high { color: var(--text-terminal-green); }
+    .accuracy-medium { color: #ffbd2e; }
+    .accuracy-low { color: #ff5f56; }
+
+    .ascii-bar {
+      height: 4px;
+      background: var(--border-secondary);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .ascii-bar-fill {
+      height: 100%;
+      background: var(--text-terminal-green);
+      transition: width 0.3s;
+    }
+
+    /* Loading State */
+    .terminal-loading {
+      color: var(--text-terminal-green);
+      text-align: center;
+      padding: 2rem;
+      font-size: 1.2rem;
+    }
+
+    .loading-dots::after {
+      content: '';
+      animation: dots 1.5s infinite;
+    }
+
+    @keyframes dots {
+      0% { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+    }
+
+    /* ASCII Art Logo */
+    .ascii-logo {
+      color: var(--text-terminal-green);
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 0.8rem;
+      line-height: 1.2;
+      opacity: 0.8;
+    }
+
+    /* Stats Display */
+    .terminal-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      color: var(--text-terminal-green);
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: block;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .terminal-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (max-width: 968px) {
+      .terminal-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .terminal-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .terminal-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+
+      .terminal-nav {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .terminal-filters {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .terminal-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .terminal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">
-                🎬 BodyScript Pose Detection
-            </h1>
-            <p class="text-gray-600">
-                Upload a video to detect and visualize human poses using AI
-            </p>
-            <div class="mt-4 space-x-4 text-sm">
-                <span class="text-gray-500">Portfolio MVP</span>
-                <a href="https://github.com/yourusername/bodyscript" target="_blank"
-                   class="text-blue-600 hover:underline">GitHub</a>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-            <!-- Upload Section -->
-            <div id="uploadSection">
-                <div id="dropZone"
-                     class="drop-zone border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-gray-400">
-                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                    </svg>
-                    <p class="text-lg text-gray-600 mb-2">Drop your video here or click to browse</p>
-                    <p class="text-sm text-gray-500">Maximum 15 seconds (longer videos will be trimmed)</p>
-                    <p class="text-xs text-gray-400 mt-2">Supported: MP4, AVI, MOV, MKV</p>
-                    <input type="file" id="fileInput" accept="video/*" class="hidden">
-                </div>
-
-                <!-- File Info -->
-                <div id="fileInfo" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="font-semibold text-gray-700" id="fileName"></p>
-                            <p class="text-sm text-gray-500" id="fileSize"></p>
-                        </div>
-                        <button id="clearBtn" class="text-red-600 hover:text-red-700 text-sm">
-                            Remove
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Upload Button -->
-                <button id="uploadBtn"
-                        class="hidden mt-4 w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition">
-                    Start Processing
-                </button>
-            </div>
-
-            <!-- Processing Section -->
-            <div id="processingSection" class="hidden">
-                <div class="text-center py-8">
-                    <!-- Skeleton Animation -->
-                    <div class="skeleton-animation mb-6">
-                        <svg class="w-24 h-24 mx-auto text-blue-600" fill="none" viewBox="0 0 24 24">
-                            <circle cx="12" cy="4" r="2" stroke="currentColor" stroke-width="2"/>
-                            <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                  d="M12 6v6m0 0l-4 8m4-8l4 8m-4-8l-4-4m4 4l4-4"/>
-                        </svg>
-                    </div>
-
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Processing Your Video</h3>
-
-                    <!-- Queue Status -->
-                    <div id="queueStatus" class="mb-4">
-                        <p class="text-sm text-gray-600">
-                            Queue Position: <span id="queuePosition" class="font-bold">1</span> of
-                            <span id="queueTotal" class="font-bold">1</span>
-                        </p>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
-                        <div id="progressBar" class="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                             style="width: 0%"></div>
-                    </div>
-                    <p id="progressText" class="text-sm text-gray-600 mb-2">0% Complete</p>
-                    <p id="progressMessage" class="text-xs text-gray-500"></p>
-
-                    <!-- Time Estimate -->
-                    <p class="text-sm text-gray-500 mt-4">
-                        Estimated time: 2-3 minutes for 15 seconds of video
-                    </p>
-                </div>
-            </div>
-
-            <!-- Results Section -->
-            <div id="resultsSection" class="hidden">
-                <div class="text-center py-6">
-                    <svg class="w-16 h-16 mx-auto text-green-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Processing Complete!</h3>
-
-                    <!-- Statistics -->
-                    <div id="statistics" class="grid grid-cols-2 gap-4 mb-6 text-left max-w-md mx-auto">
-                        <div class="bg-gray-50 p-3 rounded">
-                            <p class="text-xs text-gray-500">Frames Processed</p>
-                            <p class="font-semibold" id="framesProcessed">-</p>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded">
-                            <p class="text-xs text-gray-500">Detection Quality</p>
-                            <p class="font-semibold" id="detectionQuality">-</p>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded">
-                            <p class="text-xs text-gray-500">Processing Time</p>
-                            <p class="font-semibold" id="processingTime">-</p>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded">
-                            <p class="text-xs text-gray-500">Processing Mode</p>
-                            <p class="font-semibold" id="processingMode">-</p>
-                        </div>
-                    </div>
-
-                    <!-- Download Buttons -->
-                    <div class="space-y-3">
-                        <a id="downloadVideo"
-                           class="block w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition">
-                            📹 Download Video with Skeleton Overlay
-                        </a>
-                        <a id="downloadCSV"
-                           class="block w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition">
-                            📊 Download Pose Data (CSV)
-                        </a>
-                        <button id="processAnother"
-                                class="block w-full text-blue-600 py-2 px-4 rounded-lg border border-blue-600 hover:bg-blue-50 transition">
-                            Process Another Video
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Error Section -->
-            <div id="errorSection" class="hidden">
-                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div class="flex items-start">
-                        <svg class="w-5 h-5 text-red-600 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <div>
-                            <h4 class="font-semibold text-red-800">Processing Error</h4>
-                            <p id="errorMessage" class="text-sm text-red-700 mt-1"></p>
-                            <button id="tryAgain"
-                                    class="mt-3 text-sm text-red-600 hover:text-red-700 underline">
-                                Try Again
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Info Section -->
-        <div class="mt-8 grid md:grid-cols-3 gap-4">
-            <div class="bg-white rounded-lg shadow p-4">
-                <h4 class="font-semibold text-gray-800 mb-2">🚀 Fast Processing</h4>
-                <p class="text-sm text-gray-600">
-                    Processes videos in 2-3 minutes using optimized MediaPipe models
-                </p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <h4 class="font-semibold text-gray-800 mb-2">🎯 High Accuracy</h4>
-                <p class="text-sm text-gray-600">
-                    Detects 33 body landmarks with 87-95% accuracy
-                </p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-4">
-                <h4 class="font-semibold text-gray-800 mb-2">💰 Low Cost</h4>
-                <p class="text-sm text-gray-600">
-                    Running on free tier services, costs less than $1/month
-                </p>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="text-center mt-8 text-sm text-gray-500">
-            <p>Built with FastAPI, MediaPipe, and React</p>
-            <p class="mt-1">© 2025 BodyScript - Portfolio Project</p>
-        </footer>
+<body>
+  <div class="container">
+    <!-- Terminal Header -->
+    <div class="terminal-header">
+      <div class="terminal-bar">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <div class="terminal-title">bodyscript@gallery:~</div>
+      </div>
+      <div class="terminal-prompt">
+        $<span class="terminal-command">./bodyscript showcase --filter=all --format=grid</span>
+      </div>
+      <div class="terminal-output">
+        Loading pose detection results... [OK]<br>
+        Found 10 processed videos with accuracy > 90%
+      </div>
     </div>
 
-    <script>
-        // Configuration
-        const API_URL = 'http://localhost:8000';
-        let currentJobId = null;
-        let statusCheckInterval = null;
+    <!-- ASCII Art Logo -->
+    <pre class="ascii-logo">
+╔══════════════════════════════════════════════════════════════╗
+║  ____            _       ____            _       _          ║
+║ | __ )  ___   __| |_   _/ ___|  ___ _ __(_)_ __ | |_        ║
+║ |  _ \ / _ \ / _` | | | \___ \ / __| '__| | '_ \| __|       ║
+║ | |_) | (_) | (_| | |_| |___) | (__| |  | | |_) | |_        ║
+║ |____/ \___/ \__,_|\__, |____/ \___|_|  |_| .__/ \__|       ║
+║                    |___/                  |_|               ║
+║                                                              ║
+║           AI-Powered Pose Detection Gallery                 ║
+╚══════════════════════════════════════════════════════════════╝
+    </pre>
 
-        // DOM Elements
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const processAnother = document.getElementById('processAnother');
-        const tryAgain = document.getElementById('tryAgain');
+    <!-- Stats Display -->
+    <div class="terminal-stats">
+      <div class="stat-item">
+        <span class="stat-value">10</span>
+        <span class="stat-label">Videos</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">94.8%</span>
+        <span class="stat-label">Avg Accuracy</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">15.2M</span>
+        <span class="stat-label">Total Views</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">3,270</span>
+        <span class="stat-label">Poses/Frame</span>
+      </div>
+    </div>
 
-        // Sections
-        const uploadSection = document.getElementById('uploadSection');
-        const processingSection = document.getElementById('processingSection');
-        const resultsSection = document.getElementById('resultsSection');
-        const errorSection = document.getElementById('errorSection');
+    <!-- Navigation -->
+    <nav class="terminal-nav">
+      <div class="terminal-filters">
+        <button class="terminal-filter filter-btn active" data-filter="all">[ALL]</button>
+        <button class="terminal-filter filter-btn" data-filter="dance">[DANCE]</button>
+        <button class="terminal-filter filter-btn" data-filter="sports">[SPORTS]</button>
+        <button class="terminal-filter filter-btn" data-filter="yoga">[YOGA]</button>
+        <button class="terminal-filter filter-btn" data-filter="martial">[MARTIAL]</button>
+      </div>
+      <a href="upload.html" class="terminal-demo-btn">
+        <span>></span> TRY DEMO
+      </a>
+    </nav>
 
-        // File handling
-        let selectedFile = null;
+    <!-- Video Grid -->
+    <div class="terminal-grid" id="videoGrid">
+      <!-- Videos will be rendered here by JavaScript -->
+    </div>
 
-        // Event Listeners
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileSelect(files[0]);
-            }
-        });
+    <!-- Loading State -->
+    <div class="terminal-loading" style="display: none;">
+      Processing<span class="loading-dots"></span>
+    </div>
+  </div>
 
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileSelect(e.target.files[0]);
-            }
-        });
+  <!-- Modal for full screen video -->
+  <div class="modal">
+    <div class="modal-content">
+      <button class="modal-close">×</button>
+      <video class="modal-video" controls>
+        <source src="" type="video/mp4">
+      </video>
+    </div>
+  </div>
 
-        uploadBtn.addEventListener('click', uploadVideo);
-        clearBtn.addEventListener('click', clearFile);
-        processAnother.addEventListener('click', reset);
-        tryAgain.addEventListener('click', reset);
+  <!-- Scripts -->
+  <script src="assets/gallery-common.js"></script>
+  <script>
+    // Terminal-specific rendering
+    function renderTerminalGallery() {
+      const grid = document.getElementById('videoGrid');
+      grid.innerHTML = '';
 
-        // Functions
-        function handleFileSelect(file) {
-            // Validate file type
-            const validTypes = ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-matroska'];
-            if (!validTypes.includes(file.type) && !file.name.match(/\.(mp4|avi|mov|mkv)$/i)) {
-                showError('Please select a valid video file (MP4, AVI, MOV, MKV)');
-                return;
-            }
+      GalleryCommon.currentVideos.forEach(video => {
+        const card = document.createElement('div');
+        card.className = 'terminal-card video-card';
+        card.dataset.videoId = video.id;
 
-            selectedFile = file;
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = formatFileSize(file.size);
-            document.getElementById('fileInfo').classList.remove('hidden');
-            uploadBtn.classList.remove('hidden');
-        }
+        // Determine accuracy class
+        let accuracyClass = 'accuracy-high';
+        if (video.accuracy < 90) accuracyClass = 'accuracy-medium';
+        if (video.accuracy < 80) accuracyClass = 'accuracy-low';
 
-        function clearFile() {
-            selectedFile = null;
-            fileInput.value = '';
-            document.getElementById('fileInfo').classList.add('hidden');
-            uploadBtn.classList.add('hidden');
-        }
+        card.innerHTML = `
+          <div class="video-container ratio-9-16">
+            <video class="preview-video" muted loop playsinline>
+              <source src="${video.preview}" type="video/mp4">
+            </video>
+            <img class="thumbnail" src="${video.thumbnail}" alt="${video.title}">
+            <div class="ascii-play">▶</div>
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
+          <div class="terminal-info">
+            <span class="filename">${video.title.toLowerCase().replace(' ', '_')}.mp4</span>
+            <span class="accuracy ${accuracyClass}">${video.accuracy}% detected</span>
+            <div class="ascii-bar">
+              <div class="ascii-bar-fill" style="width: ${video.accuracy}%"></div>
+            </div>
+          </div>
+        `;
 
-        async function uploadVideo() {
-            if (!selectedFile) return;
+        grid.appendChild(card);
+      });
 
-            // Show processing section
-            uploadSection.classList.add('hidden');
-            processingSection.classList.remove('hidden');
-            errorSection.classList.add('hidden');
+      // Reinitialize interactions
+      GalleryCommon.initializeGallery();
+    }
 
-            try {
-                // Create form data
-                const formData = new FormData();
-                formData.append('file', selectedFile);
+    // Override the common render function
+    GalleryCommon.renderGallery = renderTerminalGallery;
 
-                // Upload video
-                const response = await fetch(`${API_URL}/api/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
+    // Initial render
+    renderTerminalGallery();
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Upload failed');
-                }
+    // Terminal typing effect for prompt
+    const command = document.querySelector('.terminal-command');
+    const originalText = command.textContent;
+    command.textContent = '';
 
-                const data = await response.json();
-                currentJobId = data.job_id;
+    let charIndex = 0;
+    const typeInterval = setInterval(() => {
+      if (charIndex < originalText.length) {
+        command.textContent += originalText[charIndex];
+        charIndex++;
+      } else {
+        clearInterval(typeInterval);
+      }
+    }, 50);
 
-                // Start polling for status
-                startStatusPolling();
+    // Add terminal sound effects (optional)
+    function playKeySound() {
+      // Could add subtle typing sounds here
+    }
 
-            } catch (error) {
-                showError(error.message);
-            }
-        }
-
-        function startStatusPolling() {
-            statusCheckInterval = setInterval(async () => {
-                try {
-                    const response = await fetch(`${API_URL}/api/status/${currentJobId}`);
-                    const status = await response.json();
-
-                    updateProgress(status);
-
-                    if (status.status === 'completed') {
-                        clearInterval(statusCheckInterval);
-                        showResults(status);
-                    } else if (status.status === 'failed') {
-                        clearInterval(statusCheckInterval);
-                        showError(status.error || 'Processing failed');
-                    }
-                } catch (error) {
-                    clearInterval(statusCheckInterval);
-                    showError('Failed to check status');
-                }
-            }, 2000); // Check every 2 seconds
-        }
-
-        function updateProgress(status) {
-            const progress = status.progress || 0;
-            document.getElementById('progressBar').style.width = `${progress}%`;
-            document.getElementById('progressText').textContent = `${progress}% Complete`;
-            document.getElementById('progressMessage').textContent = status.message || '';
-
-            // Update queue position if pending
-            if (status.queue_position) {
-                document.getElementById('queuePosition').textContent = status.queue_position;
-                document.getElementById('queueTotal').textContent = status.queue_total || 1;
-                document.getElementById('queueStatus').classList.remove('hidden');
-            } else {
-                document.getElementById('queueStatus').classList.add('hidden');
-            }
-        }
-
-        function showResults(status) {
-            processingSection.classList.add('hidden');
-            resultsSection.classList.remove('hidden');
-
-            // Display statistics
-            const stats = status.statistics || {};
-            document.getElementById('framesProcessed').textContent = stats.frames_processed || '-';
-            document.getElementById('detectionQuality').textContent =
-                stats.average_quality ? `${(stats.average_quality * 100).toFixed(1)}%` : '-';
-            document.getElementById('processingTime').textContent =
-                stats.processing_time ? `${stats.processing_time.toFixed(1)}s` : '-';
-            document.getElementById('processingMode').textContent =
-                (stats.processing_mode || 'fast').toUpperCase();
-
-            // Set download links
-            document.getElementById('downloadVideo').href =
-                `${API_URL}/api/download/${currentJobId}/video`;
-            document.getElementById('downloadCSV').href =
-                `${API_URL}/api/download/${currentJobId}/csv`;
-        }
-
-        function showError(message) {
-            uploadSection.classList.add('hidden');
-            processingSection.classList.add('hidden');
-            resultsSection.classList.add('hidden');
-            errorSection.classList.remove('hidden');
-            document.getElementById('errorMessage').textContent = message;
-        }
-
-        function reset() {
-            if (statusCheckInterval) {
-                clearInterval(statusCheckInterval);
-            }
-            currentJobId = null;
-            selectedFile = null;
-            fileInput.value = '';
-
-            uploadSection.classList.remove('hidden');
-            processingSection.classList.add('hidden');
-            resultsSection.classList.add('hidden');
-            errorSection.classList.add('hidden');
-
-            document.getElementById('fileInfo').classList.add('hidden');
-            uploadBtn.classList.add('hidden');
-            document.getElementById('progressBar').style.width = '0%';
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        // Wake up service notification
-        async function checkHealth() {
-            try {
-                const response = await fetch(`${API_URL}/health`);
-                if (response.ok) {
-                    console.log('API is running');
-                } else {
-                    console.warn('API may be sleeping. First upload will wake it up.');
-                }
-            } catch (error) {
-                console.warn('API is not running or sleeping. Please start the backend server.');
-            }
-        }
-
-        // Check API health on page load
-        checkHealth();
-    </script>
+    // Matrix-style background effect (optional, subtle)
+    function createMatrixRain() {
+      // Could add subtle matrix rain effect
+    }
+  </script>
 </body>
 </html>
