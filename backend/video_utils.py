@@ -10,7 +10,7 @@ from typing import Tuple, Dict, Optional
 
 
 def generate_thumbnail(video_path: str, output_path: str,
-                      size: Tuple[int, int] = (405, 720),
+                      size: Tuple[int, int] = (404, 720),
                       frame_number: int = 0) -> bool:
     """
     Generate thumbnail from video frame
@@ -71,7 +71,7 @@ def generate_thumbnail(video_path: str, output_path: str,
 def generate_preview(video_path: str, output_path: str,
                     duration: int = 3,
                     quality: str = "low",
-                    max_height: int = 360) -> bool:
+                    size: Tuple[int, int] = (404, 720)) -> bool:
     """
     Generate preview video clip
 
@@ -80,7 +80,7 @@ def generate_preview(video_path: str, output_path: str,
         output_path: Path for output preview
         duration: Preview duration in seconds
         quality: Quality level ('low', 'medium', 'high')
-        max_height: Maximum height for preview
+        size: Target size (width, height) - same as thumbnail
 
     Returns:
         True if successful
@@ -94,13 +94,15 @@ def generate_preview(video_path: str, output_path: str,
         }
 
         settings = quality_settings.get(quality, quality_settings['low'])
+        target_w, target_h = size
 
-        # Build ffmpeg command
+        # Build ffmpeg command with proper scaling to match thumbnail
+        # Scale to exact size (matching thumbnail generation behavior)
         cmd = [
             "ffmpeg",
             "-i", video_path,
             "-t", str(duration),  # Duration
-            "-vf", f"scale=-2:{max_height}",  # Scale to max height (ensure even width)
+            "-vf", f"scale={target_w}:{target_h}",  # Scale to exact size
             "-c:v", "libx264",  # H.264 codec
             "-preset", settings['preset'],
             "-crf", settings['crf'],  # Quality

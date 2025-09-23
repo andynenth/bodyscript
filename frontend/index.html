@@ -192,6 +192,21 @@
       75% { opacity: 0.85; transform: translate(1px, -1px); }
     }
 
+    /* Video name overlay */
+    .video-name-overlay {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      color: var(--text-terminal-green);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      border: 1px solid rgba(39, 201, 63, 0.3);
+      z-index: 3;
+    }
+
     .ascii-play {
       position: absolute;
       top: 50%;
@@ -477,7 +492,8 @@
       const grid = document.getElementById('videoGrid');
       grid.innerHTML = '';
 
-      GalleryCommon.currentVideos.forEach(video => {
+      // Use currentVideos from window scope (set by gallery-common.js)
+      (window.currentVideos || []).forEach(video => {
         const card = document.createElement('div');
         card.className = 'terminal-card video-card';
         card.dataset.videoId = video.id;
@@ -494,16 +510,7 @@
             </video>
             <img class="thumbnail" src="${video.thumbnail}" alt="${video.title}">
             <div class="ascii-play">▶</div>
-            <div class="progress-bar">
-              <div class="progress-fill"></div>
-            </div>
-          </div>
-          <div class="terminal-info">
-            <span class="filename">${video.title.toLowerCase().replace(' ', '_')}.mp4</span>
-            <span class="accuracy ${accuracyClass}">${video.accuracy}% detected</span>
-            <div class="ascii-bar">
-              <div class="ascii-bar-fill" style="width: ${video.accuracy}%"></div>
-            </div>
+            <div class="video-name-overlay">${video.title || video.id}</div>
           </div>
         `;
 
@@ -581,7 +588,12 @@
       }
 
       // Load gallery data
-      // This will be updated when gallery-common.js is modified
+      window.loadGalleryData().then(() => {
+        console.log('Gallery data loaded:', window.GALLERY_VIDEOS);
+        console.log('Current videos:', window.currentVideos);
+        // After loading data, render the gallery
+        renderTerminalGallery();
+      });
     });
   </script>
 </body>

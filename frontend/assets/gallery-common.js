@@ -3,7 +3,10 @@
    Shared functionality for all gallery options
    ===================================================================== */
 
-// Sample video data (replace with real data later)
+// Load gallery data dynamically
+let GALLERY_VIDEOS = [];
+
+// Sample fallback data
 const SAMPLE_VIDEOS = [
   {
     id: 1,
@@ -159,7 +162,7 @@ const SAMPLE_VIDEOS = [
 
 // Current filter state
 let currentFilter = 'all';
-let currentVideos = [...SAMPLE_VIDEOS];
+let currentVideos = [];
 
 // Hover preview functionality
 function initializeHoverPreview() {
@@ -187,15 +190,7 @@ function initializeHoverPreview() {
           video.style.display = 'none';
         });
 
-        // Start progress animation
-        if (progressBar) {
-          progressBar.style.width = '0%';
-          progressBar.style.transition = 'none';
-          setTimeout(() => {
-            progressBar.style.transition = 'width 3s linear';
-            progressBar.style.width = '100%';
-          }, 50);
-        }
+        // Progress bar removed - no longer needed
 
         // Stop after 3 seconds
         playbackTimeout = setTimeout(() => {
@@ -216,11 +211,6 @@ function initializeHoverPreview() {
       // Show thumbnail again
       video.style.display = 'none';
       thumbnail.style.display = 'block';
-
-      // Reset progress bar
-      if (progressBar) {
-        progressBar.style.width = '0%';
-      }
     });
   });
 }
@@ -310,13 +300,44 @@ function filterVideos(filter) {
   currentFilter = filter;
 
   if (filter === 'all') {
-    currentVideos = [...SAMPLE_VIDEOS];
+    currentVideos = [...GALLERY_VIDEOS];
   } else {
-    currentVideos = SAMPLE_VIDEOS.filter(v => v.category === filter);
+    currentVideos = GALLERY_VIDEOS.filter(v => v.category === filter);
   }
 
   // Re-render gallery
   renderGallery();
+}
+
+// Load gallery data from API or use samples
+async function loadGalleryData() {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Try to load from local API
+    try {
+      const response = await fetch(`${window.API_URL || 'http://localhost:8000'}/api/gallery`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.videos && data.videos.length > 0) {
+          GALLERY_VIDEOS = data.videos;
+          console.log('Loaded', GALLERY_VIDEOS.length, 'videos from local API');
+          currentVideos = [...GALLERY_VIDEOS];
+          // Update window references
+          window.GALLERY_VIDEOS = GALLERY_VIDEOS;
+          window.currentVideos = currentVideos;
+          return;
+        }
+      }
+    } catch (error) {
+      console.log('Could not load gallery from API:', error);
+    }
+  }
+
+  // Fall back to sample data
+  GALLERY_VIDEOS = SAMPLE_VIDEOS;
+  currentVideos = [...GALLERY_VIDEOS];
+  // Update window references
+  window.GALLERY_VIDEOS = GALLERY_VIDEOS;
+  window.currentVideos = currentVideos;
 }
 
 // Render gallery (to be implemented in each option)
@@ -429,3 +450,8 @@ window.GalleryCommon = {
   renderGallery,
   initializeGallery
 };
+
+// Also expose the main data arrays to window
+window.GALLERY_VIDEOS = GALLERY_VIDEOS;
+window.currentVideos = currentVideos;
+window.loadGalleryData = loadGalleryData;

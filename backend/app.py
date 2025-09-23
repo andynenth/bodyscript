@@ -7,6 +7,7 @@ Portfolio MVP version - simple, functional, demonstrable.
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import uuid
 import shutil
@@ -68,6 +69,46 @@ async def root():
             "health": "/health"
         }
     }
+
+
+@app.get("/api/serve/{job_id}/{filename}")
+async def serve_local_file(job_id: str, filename: str):
+    """Serve local files for gallery display."""
+    from pathlib import Path
+
+    file_path = Path("temp") / job_id / filename
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # Determine media type
+    if filename.endswith('.jpg'):
+        media_type = "image/jpeg"
+    elif filename.endswith('.mp4'):
+        media_type = "video/mp4"
+    elif filename.endswith('.csv'):
+        media_type = "text/csv"
+    else:
+        media_type = "application/octet-stream"
+
+    return FileResponse(str(file_path), media_type=media_type)
+
+
+@app.get("/api/gallery")
+async def get_gallery():
+    """Get gallery videos for display."""
+    import json
+    from pathlib import Path
+
+    # Check for local gallery.json file
+    gallery_file = Path("temp") / "gallery.json"
+
+    if gallery_file.exists():
+        with open(gallery_file) as f:
+            return json.load(f)
+
+    # Return empty gallery if no file exists
+    return {"videos": []}
 
 
 @app.get("/health")
@@ -345,6 +386,12 @@ async def startup_event():
     print("  Download: GET /api/download/{job_id}/video")
     print("  Health: GET /health")
     print("=" * 60)
+
+
+# Mount frontend as static files (must be last to avoid overriding API routes)
+frontend_path = Path(__file__).parent.parent / "frontend"
+if frontend_path.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
 
 
 if __name__ == "__main__":

@@ -453,6 +453,15 @@
         `<img src="${thumbnailUrl}" class="video-thumbnail" alt="Thumbnail">` :
         `<div class="video-thumbnail" style="display: flex; align-items: center; justify-content: center; color: #666;">No thumbnail</div>`;
 
+      // Check if video is already approved
+      const isApproved = video.is_approved || false;
+
+      // If approved, show with different styling
+      if (isApproved) {
+        card.style.borderColor = '#27c93f';
+        card.style.background = 'rgba(39, 201, 63, 0.05)';
+      }
+
       card.innerHTML = `
         ${thumbnailElem}
 
@@ -479,23 +488,31 @@
             id="name_${video.job_id}"
             placeholder="Display name (e.g., dance-performance-1)"
             class="auth-input"
-            style="margin-bottom: 0.5rem;"
+            style="margin-bottom: 0.5rem;${isApproved ? ' opacity: 0.6;' : ''}"
+            value="${video.saved_name ? video.saved_name : ''}"
+            ${isApproved ? 'disabled' : ''}
           >
-          <select id="category_${video.job_id}" class="auth-input" style="margin-bottom: 0.5rem;">
-            <option value="dance">Dance</option>
-            <option value="sports">Sports</option>
-            <option value="yoga">Yoga</option>
-            <option value="martial">Martial Arts</option>
+          <select id="category_${video.job_id}" class="auth-input" style="margin-bottom: 0.5rem;${isApproved ? ' opacity: 0.6;' : ''}" ${isApproved ? 'disabled' : ''}>
+            <option value="dance" ${video.saved_category === 'dance' ? 'selected' : ''}>Dance</option>
+            <option value="sports" ${video.saved_category === 'sports' ? 'selected' : ''}>Sports</option>
+            <option value="yoga" ${video.saved_category === 'yoga' ? 'selected' : ''}>Yoga</option>
+            <option value="martial" ${video.saved_category === 'martial' ? 'selected' : ''}>Martial Arts</option>
           </select>
         </div>
 
         <div class="actions">
-          <button class="btn" onclick="approveVideo('${video.job_id}')">
-            Approve
-          </button>
-          <button class="btn reject" onclick="rejectVideo('${video.job_id}')">
-            Reject
-          </button>
+          ${isApproved ? `
+            <button class="btn" style="background: #27c93f; color: #000;" onclick="unapproveVideo('${video.job_id}')">
+              ✓ Approved
+            </button>
+          ` : `
+            <button class="btn" onclick="approveVideo('${video.job_id}')">
+              Approve
+            </button>
+            <button class="btn reject" onclick="rejectVideo('${video.job_id}')">
+              Reject
+            </button>
+          `}
         </div>
       `;
 
@@ -535,17 +552,41 @@
         if (response.ok) {
           showMessage(`Video "${displayName}" added to gallery!`, 'success');
 
-          // Remove card from UI
+          // Update card UI to show approved state
           const card = document.getElementById(`card_${jobId}`);
           if (card) {
-            card.style.opacity = '0.5';
-            card.style.pointerEvents = 'none';
-            setTimeout(() => card.remove(), 500);
+            // Disable input fields
+            const nameInput = document.getElementById(`name_${jobId}`);
+            const categorySelect = document.getElementById(`category_${jobId}`);
+            if (nameInput) {
+              nameInput.disabled = true;
+              nameInput.style.opacity = '0.6';
+            }
+            if (categorySelect) {
+              categorySelect.disabled = true;
+              categorySelect.style.opacity = '0.6';
+            }
+
+            // Change button states
+            const actionsDiv = card.querySelector('.actions');
+            if (actionsDiv) {
+              actionsDiv.innerHTML = `
+                <button class="btn" style="background: #27c93f; color: #000;" onclick="unapproveVideo('${jobId}')">
+                  ✓ Approved
+                </button>
+              `;
+            }
+
+            // Add visual indicator that it's approved
+            card.style.borderColor = '#27c93f';
+            card.style.background = 'rgba(39, 201, 63, 0.05)';
           }
 
-          // Remove from local array
-          pendingVideos = pendingVideos.filter(v => v.job_id !== jobId);
-          updateStats();
+          // Mark video as approved in the local array but don't remove it
+          const video = pendingVideos.find(v => v.job_id === jobId);
+          if (video) {
+            video.approved = true;
+          }
         } else {
           const error = await response.json();
           showMessage(`Failed to approve: ${error.detail}`, 'error');
@@ -553,6 +594,82 @@
       } catch (error) {
         console.error('Approve error:', error);
         showMessage('Failed to approve video', 'error');
+      }
+    }
+
+    // Unapprove video (remove from gallery)
+    async function unapproveVideo(jobId) {
+      if (!confirm('Remove this video from the gallery?')) return;
+
+      try {
+        const response = await fetch(`${window.API_URL}/admin/unapprove/${jobId}?auth=${adminToken}`, {
+          method: 'POST'
+        });
+
+        if (response.ok) {
+          showMessage('Video removed from gallery', 'success');
+
+          // Update card UI to show pending state
+          const card = document.getElementById(`card_${jobId}`);
+          if (card) {
+            // Remove approved styling
+            card.style.borderColor = '';
+            card.style.background = '';
+
+            // Re-enable input fields
+            const nameInput = document.getElementById(`name_${jobId}`);
+            const categorySelect = document.getElementById(`category_${jobId}`);
+            if (nameInput) {
+              nameInput.disabled = false;
+              nameInput.style.opacity = '1';
+              // Keep the value - don't clear it
+            }
+            if (categorySelect) {
+              categorySelect.disabled = false;
+              categorySelect.style.opacity = '1';
+              // Keep the selected category
+            }
+
+            // Change button back to approve/reject
+            const actionsDiv = card.querySelector('.actions');
+            if (actionsDiv) {
+              actionsDiv.innerHTML = `
+                <button class="btn" onclick="approveVideo('${jobId}')">
+                  Approve
+                </button>
+                <button class="btn reject" onclick="rejectVideo('${jobId}')">
+                  Reject
+                </button>
+              `;
+            }
+          }
+
+          // Update local data
+          const video = pendingVideos.find(v => v.job_id === jobId);
+          if (video) {
+            video.is_approved = false;
+            // Keep the saved values for re-approval
+          }
+        } else {
+          showMessage('Failed to remove from gallery', 'error');
+        }
+      } catch (error) {
+        console.error('Unapprove error:', error);
+        showMessage('Failed to remove from gallery', 'error');
+      }
+    }
+
+    // Remove approved video from the grid
+    function removeApprovedVideo(jobId) {
+      const card = document.getElementById(`card_${jobId}`);
+      if (card) {
+        card.style.opacity = '0.3';
+        setTimeout(() => {
+          card.remove();
+          // Remove from local array
+          pendingVideos = pendingVideos.filter(v => v.job_id !== jobId);
+          updateStats();
+        }, 300);
       }
     }
 
