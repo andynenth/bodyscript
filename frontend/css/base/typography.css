@@ -1,0 +1,198 @@
+/**
+ * Typography - BodyScript
+ * Font imports, base font styles, and text utilities
+ */
+
+/* ===================================================================
+   Font Imports
+   =================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap');
+
+/* ===================================================================
+   Base Typography
+   =================================================================== */
+body {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-terminal-green);
+
+  /* Terminal-style background pattern */
+  background: var(--bg-primary);
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0, 255, 0, 0.01) 20px, rgba(0, 255, 0, 0.01) 21px),
+    repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0, 255, 0, 0.01) 20px, rgba(0, 255, 0, 0.01) 21px);
+}
+
+/* ===================================================================
+   Headings
+   =================================================================== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-terminal-green);
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+h4, h5, h6 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ===================================================================
+   Text Elements
+   =================================================================== */
+p {
+  margin-bottom: 1rem;
+}
+
+strong, b {
+  font-weight: 600;
+}
+
+em, i {
+  font-style: italic;
+}
+
+small {
+  font-size: 0.875em;
+}
+
+code, pre {
+  font-family: var(--font-mono);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.125em 0.25em;
+  border-radius: 3px;
+  font-size: 0.95em;
+}
+
+pre {
+  padding: 1rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+/* ===================================================================
+   Text Color Utilities
+   =================================================================== */
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-success {
+  color: var(--success-color);
+}
+
+.text-error {
+  color: var(--text-error);
+}
+
+.text-warning {
+  color: var(--text-warning);
+}
+
+.text-info {
+  color: var(--text-info);
+}
+
+/* ===================================================================
+   Text Alignment
+   =================================================================== */
+.text-left {
+  text-align: left;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* ===================================================================
+   Text Transform
+   =================================================================== */
+.uppercase {
+  text-transform: uppercase;
+}
+
+.lowercase {
+  text-transform: lowercase;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* ===================================================================
+   Font Weight
+   =================================================================== */
+.font-thin {
+  font-weight: 100;
+}
+
+.font-light {
+  font-weight: 300;
+}
+
+.font-normal {
+  font-weight: 400;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+/* ===================================================================
+   Terminal-Specific Typography
+   =================================================================== */
+.monospace {
+  font-family: var(--font-mono);
+}
+
+.terminal-text {
+  font-family: var(--font-mono);
+  color: var(--text-terminal-green);
+  letter-spacing: 0.02em;
+}
+
+/* ASCII Art Text */
+.ascii-text {
+  font-family: var(--font-mono);
+  line-height: 1;
+  white-space: pre;
+  letter-spacing: 0;
+}

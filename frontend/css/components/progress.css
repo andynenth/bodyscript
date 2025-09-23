@@ -1,0 +1,287 @@
+/**
+ * Progress & Status Components - BodyScript
+ * Progress bars, status indicators, and processing animations
+ * Mobile: Responsive adjustments below 768px
+ */
+
+/* ===================================================================
+   Processing Animation Container
+   =================================================================== */
+.processing-animation {
+  margin: 2rem auto;
+  max-width: 600px;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+}
+
+.processing-animation.show {
+  display: block !important;
+}
+
+/* ===================================================================
+   ASCII Progress Bar
+   =================================================================== */
+.ascii-progress {
+  margin: 1rem 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.progress-label {
+  color: #27c93f;
+  font-size: 14px;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.progress-bar-ascii {
+  color: #27c93f;
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -1px;
+}
+
+.progress-percent {
+  color: #27c93f;
+  margin-left: 1rem;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ===================================================================
+   Frame Counter
+   =================================================================== */
+.frame-counter {
+  color: var(--text-primary);
+  font-size: 14px;
+  margin-top: 0.5rem;
+}
+
+/* ===================================================================
+   Progress Container
+   =================================================================== */
+.progress-container {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+  margin: 1.5rem 0;
+}
+
+.progress-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* ===================================================================
+   Status Badge
+   =================================================================== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background: rgba(39, 201, 63, 0.1);
+  border: 1px solid var(--success-color);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--success-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.status-badge.error {
+  background: rgba(255, 95, 86, 0.1);
+  border-color: var(--danger-color);
+  color: var(--danger-color);
+}
+
+.status-badge.warning {
+  background: rgba(255, 189, 46, 0.1);
+  border-color: var(--text-warning);
+  color: var(--text-warning);
+}
+
+.status-badge.info {
+  background: rgba(90, 200, 250, 0.1);
+  border-color: var(--text-info);
+  color: var(--text-info);
+}
+
+/* ===================================================================
+   Status Component (Terminal Style)
+   =================================================================== */
+.status-component {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.status-header {
+  color: var(--text-terminal-green);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.status-message {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.status-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.status-icon.ready {
+  color: #999;
+}
+
+.status-icon.processing {
+  color: var(--text-warning);
+  animation: pulse 1s infinite;
+}
+
+.status-icon.complete {
+  color: var(--success-color);
+}
+
+.status-icon.error {
+  color: var(--danger-color);
+}
+
+/* ===================================================================
+   Spinner Animations
+   =================================================================== */
+.spinner-ascii {
+  color: var(--text-terminal-green);
+  font-size: 1rem;
+  animation: spin-ascii 0.8s steps(4) infinite;
+}
+
+@keyframes spin-ascii {
+  0% { content: '|'; }
+  25% { content: '/'; }
+  50% { content: '-'; }
+  75% { content: '\\'; }
+  100% { content: '|'; }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ===================================================================
+   Progress Steps List
+   =================================================================== */
+.progress-steps {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.progress-step.active {
+  color: var(--text-terminal-green);
+}
+
+.progress-step.complete {
+  color: var(--success-color);
+}
+
+.progress-step::before {
+  content: '[ ]';
+  margin-right: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.progress-step.active::before {
+  content: '[>]';
+  color: var(--text-warning);
+  animation: blink 1s infinite;
+}
+
+.progress-step.complete::before {
+  content: '[✓]';
+  color: var(--success-color);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ===================================================================
+   Mobile Responsive Styles (< 768px)
+   =================================================================== */
+@media (max-width: 768px) {
+  /* Progress Container */
+  .progress-container {
+    padding: 1rem;
+  }
+
+  .progress-label {
+    font-size: 14px;
+  }
+
+  .progress-bar-container {
+    font-size: 12px;
+  }
+
+  /* Processing Animation */
+  .processing-animation {
+    padding: 1rem;
+  }
+
+  .frame-counter {
+    font-size: 12px;
+  }
+
+  /* Status Badge */
+  .status-badge {
+    white-space: nowrap;
+    font-size: 11px;
+    padding: 0.25rem 0.5rem;
+    align-self: flex-start;
+    width: auto;
+  }
+
+  /* Status Component */
+  .status-component {
+    padding: 0.75rem;
+  }
+
+  .status-header {
+    font-size: 13px;
+  }
+
+  .status-message {
+    font-size: 13px;
+  }
+}

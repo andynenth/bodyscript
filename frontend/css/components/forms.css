@@ -1,0 +1,314 @@
+/**
+ * Forms & File Components - BodyScript
+ * Drop zones, file displays, file info cards, and upload-related UI
+ * Mobile: Responsive adjustments below 768px
+ */
+
+/* ===================================================================
+   ASCII Drop Zone
+   =================================================================== */
+.ascii-dropzone {
+  margin: 2rem auto;
+  padding: 2rem 1.5rem;
+  border: 2px dashed var(--border-secondary);
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+  max-width: 400px;
+  transform: scale(0.9);
+}
+
+.ascii-dropzone:hover {
+  border-color: var(--border-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1);
+}
+
+.ascii-dropzone.dragover {
+  border-color: var(--text-terminal-green);
+  background: rgba(39, 201, 63, 0.1);
+  box-shadow: 0 0 20px rgba(39, 201, 63, 0.2);
+  transform: scale(1.02);
+}
+
+.ascii-dropzone.has-file {
+  display: none !important;
+}
+
+/* ASCII Art in Drop Zone */
+.ascii-art {
+  color: #27c93f;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+  opacity: 1;
+  white-space: pre;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.drop-text {
+  color: var(--text-primary);
+  margin-top: 1rem;
+  font-size: 14px;
+}
+
+.drop-hint {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ===================================================================
+   File Display Container
+   =================================================================== */
+.file-display {
+  display: none;
+  margin: 2rem auto;
+  max-width: 600px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.file-display.show {
+  display: block;
+}
+
+/* File Header */
+.file-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: transparent;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.file-main-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.file-name {
+  color: var(--text-terminal-green);
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+}
+
+.file-size {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+/* File Details (Expandable) */
+.file-details {
+  background: transparent;
+  animation: expand 0.3s ease;
+}
+
+@keyframes expand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.file-details span {
+  color: var(--text-terminal-green);
+}
+
+/* ===================================================================
+   File Info Card (Results Section)
+   =================================================================== */
+.file-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+}
+
+.file-info-line {
+  color: var(--text-primary);
+  margin: 0.5rem 0;
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  justify-content: space-between;
+}
+
+.file-info-label {
+  color: #27c93f;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+}
+
+/* ===================================================================
+   System Info / Requirements
+   =================================================================== */
+.system-info {
+  margin: 1rem 0 2rem 0;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+.system-info.hidden {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.info-header {
+  color: #27c93f;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.info-line {
+  color: var(--text-primary);
+  margin: 0.5rem 0;
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  align-items: center;
+}
+
+.info-line::before {
+  content: '[✓]';
+  color: #27c93f;
+  margin-right: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ===================================================================
+   File Input (Hidden)
+   =================================================================== */
+input[type="file"] {
+  display: none;
+}
+
+/* ===================================================================
+   Upload Button
+   =================================================================== */
+.upload-btn {
+  padding: 0.75rem 1.5rem;
+  background: rgba(39, 201, 63, 0.1);
+  border: 1px solid var(--text-terminal-green);
+  color: var(--text-terminal-green);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.upload-btn:hover {
+  background: var(--text-terminal-green);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 201, 63, 0.3);
+}
+
+/* ===================================================================
+   Mobile Responsive Styles (< 768px)
+   =================================================================== */
+@media (max-width: 768px) {
+  /* Drop Zone */
+  .ascii-dropzone {
+    max-width: 100%;
+    padding: 1.5rem 1rem;
+    margin: 1rem auto;
+  }
+
+  /* File Display */
+  .file-display {
+    margin: 1rem auto;
+    padding: 1rem;
+  }
+
+  /* Stack file header vertically on mobile */
+  .file-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .file-main-info {
+    width: 100%;
+  }
+
+  .file-name {
+    font-size: 16px;
+    word-break: break-word;
+  }
+
+  .file-details {
+    font-size: 14px;
+  }
+
+  /* File Info Card - Stack vertically on mobile */
+  .file-info {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  /* Drop text */
+  .drop-text {
+    font-size: 14px;
+  }
+
+  /* System Info */
+  .system-info {
+    padding: 0.75rem;
+    margin: 0.5rem 0 1rem 0;
+  }
+
+  .info-header {
+    font-size: 13px;
+  }
+
+  .info-line {
+    font-size: 13px;
+  }
+}

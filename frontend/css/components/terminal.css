@@ -1,0 +1,188 @@
+/**
+ * Terminal Component - BodyScript
+ * Styles for terminal window and terminal-themed UI elements
+ * Mobile: Responsive adjustments below 768px
+ */
+
+/* ===================================================================
+   Terminal Container
+   =================================================================== */
+.terminal-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ===================================================================
+   Terminal Window
+   =================================================================== */
+.terminal-window {
+  background: var(--bg-terminal);
+  border: 1px solid var(--border-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ===================================================================
+   Terminal Header
+   =================================================================== */
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 1rem;
+  background: var(--bg-terminal-header);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+/* ===================================================================
+   Terminal Window Controls (Traffic Lights)
+   =================================================================== */
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-dot.red {
+  background: #ff5f56;
+}
+
+.terminal-dot.yellow {
+  background: #ffbd2e;
+}
+
+.terminal-dot.green {
+  background: #27c93f;
+}
+
+/* ===================================================================
+   Terminal Title
+   =================================================================== */
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ===================================================================
+   Terminal Body
+   =================================================================== */
+.terminal-body {
+  padding: 2rem;
+  min-height: 600px;
+}
+
+/* ===================================================================
+   Terminal Output (for logs/results)
+   =================================================================== */
+.terminal-output {
+  margin-top: 2rem;
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+
+/* ===================================================================
+   Terminal Button Style
+   =================================================================== */
+.terminal-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  padding: 0.75rem 1.5rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--text-terminal-green);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.terminal-btn:hover {
+  background: var(--hover-bg);
+  border-color: var(--text-terminal-green);
+  transform: translateY(-1px);
+}
+
+.terminal-btn:active {
+  transform: translateY(0);
+}
+
+/* ===================================================================
+   Mobile Responsive Styles (< 768px)
+   =================================================================== */
+@media (max-width: 768px) {
+  /* Container adjustments */
+  .terminal-container {
+    padding: 0.5rem;
+  }
+
+  .terminal-body {
+    padding: 1rem;
+  }
+
+  .terminal-window {
+    border-radius: 4px;
+  }
+
+  /* Hide terminal dots on mobile */
+  .terminal-dot {
+    display: none;
+  }
+
+  /* Mobile button adjustments */
+  .terminal-btn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 16px;
+    padding: 0.875rem 1rem;
+    justify-content: center;
+  }
+}
+
+/* ===================================================================
+   Terminal Animations
+   =================================================================== */
+@keyframes terminalBlink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 10px;
+  height: 20px;
+  background: var(--text-terminal-green);
+  animation: terminalBlink 1s infinite;
+  vertical-align: text-bottom;
+}
+
+/* ===================================================================
+   Terminal Command Line Style
+   =================================================================== */
+.terminal-prompt {
+  color: var(--text-terminal-green);
+  margin-right: 0.5rem;
+}
+
+.terminal-prompt::before {
+  content: "$ ";
+}
+
+.terminal-command {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}

@@ -1,0 +1,111 @@
+/**
+ * Main CSS Orchestrator - BodyScript
+ * Imports all CSS modules in the correct order
+ *
+ * Import order matters for CSS cascade:
+ * 1. Base styles (variables, reset, typography)
+ * 2. Layout components
+ * 3. UI components
+ * 4. Page-specific styles
+ */
+
+/* ===================================================================
+   Base Styles - Foundation
+   =================================================================== */
+@import url('base/variables.css');    /* CSS custom properties */
+@import url('base/reset.css');        /* Browser reset & normalization */
+@import url('base/typography.css');   /* Font definitions & text styles */
+
+/* ===================================================================
+   Component Styles - UI Elements
+   =================================================================== */
+@import url('components/terminal.css');  /* Terminal window & header */
+@import url('components/buttons.css');   /* All button variants */
+@import url('components/progress.css');  /* Progress bars & status */
+@import url('components/forms.css');     /* Forms, dropzones, inputs */
+@import url('components/modal.css');     /* Modal windows & overlays */
+
+/* ===================================================================
+   Layout Styles (if needed in future)
+   =================================================================== */
+/* @import url('layout/grid.css'); */
+/* @import url('layout/navigation.css'); */
+
+/* ===================================================================
+   Page-Specific Styles (if needed in future)
+   =================================================================== */
+/* @import url('pages/upload.css'); */
+/* @import url('pages/gallery.css'); */
+/* @import url('pages/admin.css'); */
+
+/* ===================================================================
+   Utility Classes - Helpers
+   =================================================================== */
+
+/* Hidden state utility */
+.hidden {
+  display: none !important;
+}
+
+/* Text utilities */
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* Spacing utilities */
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+.p-1 { padding: 0.5rem; }
+.p-2 { padding: 1rem; }
+.p-3 { padding: 1.5rem; }
+.p-4 { padding: 2rem; }
+
+/* Flexbox utilities */
+.d-flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+/* Status utilities */
+.status-ready {
+  color: var(--text-terminal-green);
+}
+
+.status-error {
+  color: var(--danger-color);
+}
+
+.status-warning {
+  color: var(--text-warning);
+}

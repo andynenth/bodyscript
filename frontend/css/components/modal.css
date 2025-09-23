@@ -1,0 +1,186 @@
+/**
+ * Modal Component - BodyScript
+ * Video modal player, modal overlays, and dialog windows
+ * Mobile: Responsive adjustments below 768px
+ */
+
+/* ===================================================================
+   Video Modal Container
+   =================================================================== */
+.video-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-modal.active {
+  display: flex;
+}
+
+/* ===================================================================
+   Modal Content
+   =================================================================== */
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  border: 1px solid var(--border-secondary);
+  background: #000;
+  border-radius: 4px;
+}
+
+/* ===================================================================
+   Modal Close Button
+   =================================================================== */
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--text-terminal-green);
+  color: var(--text-terminal-green);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+  z-index: 10001;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: var(--text-terminal-green);
+  color: #000;
+  transform: scale(1.05);
+}
+
+/* ===================================================================
+   Modal Video Player
+   =================================================================== */
+.modal-video {
+  width: 100%;
+  height: auto;
+  max-height: calc(90vh - 60px);
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+}
+
+/* ===================================================================
+   Video Player Container (for thumbnails)
+   =================================================================== */
+.video-player-container {
+  margin: 2rem auto;
+  width: 300px;
+  height: 200px;
+  background: #000;
+  border: 1px solid var(--border-secondary);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.video-player-container:hover {
+  border-color: var(--text-terminal-green);
+}
+
+/* Play icon overlay */
+.video-player-container::after {
+  content: '▶';
+  position: absolute;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 2rem;
+  z-index: 10;
+  transition: transform 0.2s ease;
+}
+
+.video-player-container:hover::after {
+  transform: scale(1.2);
+}
+
+.video-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #111;
+}
+
+/* ===================================================================
+   Mobile Responsive Styles (< 768px)
+   =================================================================== */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .modal-close {
+    top: 5px;
+    right: 5px;
+    padding: 0.4rem 0.8rem;
+    font-size: 13px;
+  }
+
+  .modal-video {
+    max-height: calc(95vh - 40px);
+  }
+
+  /* Smaller video preview on mobile */
+  .video-player-container {
+    width: 250px;
+    height: 167px;
+    margin: 1rem auto;
+  }
+
+  .video-player-container::after {
+    font-size: 1.5rem;
+  }
+}
+
+/* ===================================================================
+   Modal Animations
+   =================================================================== */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.video-modal {
+  animation: modalFadeIn 0.2s ease;
+}
+
+.modal-content {
+  animation: modalSlideIn 0.3s ease;
+}

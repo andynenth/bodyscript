@@ -1,0 +1,313 @@
+/**
+ * Buttons Component - BodyScript
+ * All button styles including primary, secondary, process, and utility buttons
+ * Mobile: Responsive adjustments below 768px
+ */
+
+/* ===================================================================
+   Button Groups
+   =================================================================== */
+.button-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem !important;
+  padding-top: 1rem;
+}
+
+/* Process button container */
+.process-btn-container {
+  text-align: center;
+  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* ===================================================================
+   Process Button - Main CTA
+   =================================================================== */
+.process-btn {
+  padding: 0.85rem 2rem;
+  background: rgba(39, 201, 63, 0.1);
+  border: 1px solid #27c93f;
+  color: #27c93f;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  min-width: 200px;
+}
+
+.process-btn:hover:not(:disabled) {
+  background: #27c93f;
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 201, 63, 0.3);
+}
+
+.process-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.process-btn:disabled {
+  background: rgba(100, 100, 100, 0.1);
+  border-color: #666;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ===================================================================
+   Button Variants
+   =================================================================== */
+
+/* Primary Action Button */
+.btn-primary {
+  border-color: var(--success-color);
+  color: var(--success-color);
+}
+
+.btn-primary:hover {
+  background: rgba(39, 201, 63, 0.1);
+  box-shadow: 0 0 10px rgba(39, 201, 63, 0.3);
+}
+
+/* Secondary Action Button */
+.btn-secondary {
+  border-color: #5ac8fa;
+  color: #5ac8fa;
+}
+
+.btn-secondary:hover {
+  background: rgba(90, 200, 250, 0.1);
+  box-shadow: 0 0 10px rgba(90, 200, 250, 0.3);
+}
+
+/* ===================================================================
+   Remove Button
+   =================================================================== */
+.remove-btn {
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #ff5f56;
+  background: rgba(255, 95, 86, 0.1);
+  color: #ff5f56;
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.remove-btn:hover {
+  background: #ff5f56;
+  color: #000;
+  transform: translateY(-2px);
+}
+
+/* ===================================================================
+   Details Toggle Button
+   =================================================================== */
+.details-toggle {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border-secondary);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.details-toggle:hover {
+  background: rgba(39, 201, 63, 0.05);
+  color: var(--text-terminal-green);
+}
+
+.toggle-icon {
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.details-toggle.active .toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* ===================================================================
+   Action Buttons (Terminal-style)
+   =================================================================== */
+.action-btn {
+  padding: 0.75rem 1.5rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--text-terminal-green);
+  color: var(--text-terminal-green);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-btn:hover {
+  background: rgba(39, 201, 63, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(39, 201, 63, 0.2);
+}
+
+/* ===================================================================
+   Download Buttons
+   =================================================================== */
+.download-btn {
+  background: transparent;
+  border-color: var(--text-terminal-green);
+  color: var(--text-terminal-green);
+}
+
+.download-btn:hover {
+  background: rgba(39, 201, 63, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ===================================================================
+   Button Icons
+   =================================================================== */
+.icon {
+  font-family: 'JetBrains Mono', monospace;
+  display: inline-block;
+}
+
+.btn-icon {
+  flex-shrink: 0;
+}
+
+/* ===================================================================
+   Button States
+   =================================================================== */
+.status-ready {
+  color: #27c93f;
+}
+
+/* ===================================================================
+   Mobile Responsive Styles (< 768px)
+   =================================================================== */
+@media (max-width: 768px) {
+  /* Stack buttons vertically */
+  .button-group {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding: 0;
+  }
+
+  /* Process Button */
+  .process-btn {
+    width: 100%;
+    font-size: 16px;
+    min-height: 48px;
+  }
+
+  /* Process button container - reduce spacing */
+  .process-btn-container {
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  /* Remove button */
+  .remove-btn {
+    min-width: 44px;
+    min-height: 44px;
+    align-self: flex-start;
+  }
+
+  /* Details Toggle */
+  .details-toggle {
+    font-size: 14px;
+    padding: 0.75rem;
+  }
+
+  /* Shorten specific button text on mobile */
+  #downloadPoseData .btn-text::after {
+    content: 'POSE DATA';
+  }
+
+  #downloadPoseData .btn-text {
+    font-size: 0;
+  }
+
+  #downloadPoseData .btn-text::after {
+    font-size: 16px;
+  }
+}
+
+/* ===================================================================
+   Button Animation Effects
+   =================================================================== */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(39, 201, 63, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(39, 201, 63, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(39, 201, 63, 0);
+  }
+}
+
+.process-btn.processing {
+  animation: pulse 2s infinite;
+}
+
+/* Ripple effect for buttons */
+.terminal-btn::after,
+.action-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.terminal-btn:focus:not(:active)::after,
+.action-btn:focus:not(:active)::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}

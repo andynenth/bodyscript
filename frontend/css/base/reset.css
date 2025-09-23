@@ -1,0 +1,143 @@
+/**
+ * CSS Reset - BodyScript
+ * Normalizes default browser styles for consistency
+ * Based on modern CSS reset best practices
+ */
+
+/* ===================================================================
+   Box Model Reset
+   =================================================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* ===================================================================
+   Document Setup
+   =================================================================== */
+html {
+  /* Prevent font size adjustment after orientation change */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ===================================================================
+   Typography Reset
+   =================================================================== */
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+/* ===================================================================
+   Lists
+   =================================================================== */
+ul, ol {
+  list-style: none;
+}
+
+/* ===================================================================
+   Links
+   =================================================================== */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+/* ===================================================================
+   Media Elements
+   =================================================================== */
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ===================================================================
+   Form Elements
+   =================================================================== */
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+  line-height: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Remove default button styling */
+button, [type='button'], [type='reset'], [type='submit'] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Remove input number spinners */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* ===================================================================
+   Tables
+   =================================================================== */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* ===================================================================
+   Misc
+   =================================================================== */
+/* Remove all animations and transitions for people who prefer not to see them */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Hide elements with hidden attribute */
+[hidden] {
+  display: none !important;
+}
