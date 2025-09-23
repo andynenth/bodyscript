@@ -745,15 +745,162 @@
 
 
     /* Responsive */
+    /* Mobile Responsive Styles */
     @media (max-width: 768px) {
+      /* Base Typography - Prevent zoom */
+      body {
+        font-size: 16px;
+      }
+
+      /* Container adjustments */
+      .terminal-container {
+        padding: 0.5rem;
+      }
+
       .terminal-body {
         padding: 1rem;
       }
 
-      .ascii-art {
-        font-size: 0.7rem;
+      .terminal-window {
+        border-radius: 4px;
       }
 
+      /* Video Player - Critical Fix */
+      .video-player-container {
+        max-width: 280px;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        margin: 1rem auto;
+      }
+
+      /* Always show play icon on mobile */
+      .video-player-container::after {
+        opacity: 0.8;
+      }
+
+      /* System Requirements - Hide on results */
+      .results-section.show ~ .system-info {
+        display: none;
+      }
+
+      /* ASCII Art adjustments */
+      .ascii-art {
+        font-size: 0.6rem;
+      }
+
+      .ascii-dropzone {
+        max-width: 100%;
+        padding: 1.5rem 1rem;
+        margin: 1rem auto;
+      }
+
+      /* File Info Card */
+      .file-info {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        margin-top: 1rem;
+      }
+
+      .file-name {
+        font-size: 16px;
+        word-break: break-word;
+      }
+
+      .file-details {
+        font-size: 14px;
+      }
+
+      .status-badge {
+        white-space: nowrap;
+        font-size: 11px;
+        padding: 0.25rem 0.5rem;
+      }
+
+      /* Buttons - Stack vertically */
+      .button-group {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        padding: 0;
+      }
+
+      .terminal-btn {
+        width: 100%;
+        min-height: 48px;
+        font-size: 16px;
+        padding: 0.875rem 1rem;
+        justify-content: center;
+      }
+
+      /* Progress Bar */
+      .progress-container {
+        padding: 1rem;
+      }
+
+      .progress-label {
+        font-size: 14px;
+      }
+
+      .progress-bar-container {
+        font-size: 12px;
+      }
+
+      /* Processing Animation */
+      .processing-animation {
+        padding: 1rem;
+      }
+
+      .frame-counter {
+        font-size: 12px;
+      }
+
+      /* Section Spacing */
+      .results-section {
+        margin-top: 1rem;
+      }
+
+      .section-title {
+        font-size: 14px;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      /* Hide elements when not needed */
+      .results-section.show + .system-info {
+        display: none;
+      }
+
+      /* Process Button */
+      .process-btn {
+        width: 100%;
+        font-size: 16px;
+        min-height: 48px;
+      }
+
+      /* File Display */
+      .file-display {
+        margin: 1rem auto;
+        padding: 1rem;
+      }
+
+      .remove-btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      /* Details Toggle */
+      .details-toggle {
+        font-size: 14px;
+        padding: 0.75rem;
+      }
+
+      /* Drop text */
+      .drop-text {
+        font-size: 14px;
+      }
+
+      /* Hide download-section (not used) */
       .download-section {
         flex-direction: column;
       }
