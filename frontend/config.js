@@ -115,8 +115,7 @@ window.checkAPIHealth = async function(showMessage = true) {
       const data = await response.json();
       const responseTime = Date.now() - startTime;
 
-      console.log('API health check:', data);
-      console.log('Response time:', responseTime, 'ms');
+      // API health check successful
 
       if (showMessage) {
         const statusEl = document.getElementById('api-status');

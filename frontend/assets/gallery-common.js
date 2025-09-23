@@ -190,18 +190,15 @@ function initializeHoverPreview() {
         if (!previewVideo && !isCreating) {
           const previewUrl = card.dataset.videoPreview;
           if (!previewUrl) {
-            console.log('[HOVER] No preview URL found on card:', card);
             return;
           }
 
           isCreating = true;
-          console.log('[HOVER] Creating video element for:', previewUrl);
 
           // Check if URL needs API_URL prefix
           let fullPreviewUrl = previewUrl;
           if (previewUrl.startsWith('/api/')) {
             fullPreviewUrl = `${window.API_URL || 'http://localhost:8000'}${previewUrl}`;
-            console.log('[HOVER] Adjusted preview URL to:', fullPreviewUrl);
           }
 
           previewVideo = document.createElement('video');
@@ -225,31 +222,23 @@ function initializeHoverPreview() {
           previewVideo.appendChild(source);
 
           container.appendChild(previewVideo);
-          console.log('[HOVER] Video element added to container');
 
           // Add error handler
           previewVideo.addEventListener('error', (e) => {
-            console.error('[HOVER] Video error:', e);
-            console.error('[HOVER] Video error detail:', previewVideo.error);
             isCreating = false;
           });
 
           // Wait for video to be ready then play
           previewVideo.addEventListener('canplay', function onCanPlay() {
-            console.log('[HOVER] Video can play, hover state:', container.matches(':hover'));
             previewVideo.removeEventListener('canplay', onCanPlay);
             isCreating = false;
 
             // Only play if still hovering
             if (container.matches(':hover')) {
-              console.log('[HOVER] Attempting to play video');
               thumbnail.style.display = 'none';
               previewVideo.style.display = 'block';
               previewVideo.currentTime = 0;
-              previewVideo.play().then(() => {
-                console.log('[HOVER] Video playing successfully');
-              }).catch(err => {
-                console.error('[HOVER] Play failed:', err);
+              previewVideo.play().catch(err => {
                 thumbnail.style.display = 'block';
                 previewVideo.style.display = 'none';
               });
@@ -341,16 +330,13 @@ function initializeFullScreenPlayer() {
       const videoFull = card.dataset.videoFull;
       const videoTitle = card.dataset.videoTitle;
 
-      console.log('[MODAL] Opening video:', videoTitle, 'URL:', videoFull);
 
       if (videoFull) {
         modalVideo.src = videoFull;
         modal.classList.add('active');
         modalVideo.play().catch(err => {
-          console.error('[MODAL] Failed to play video:', err);
         });
       } else {
-        console.error('[MODAL] No video URL found on card');
       }
     });
   });
@@ -427,7 +413,6 @@ async function loadGalleryData() {
             preview: video.preview.startsWith('/') ? `${window.API_URL}${video.preview}` : video.preview,
             full: video.full.startsWith('/') ? `${window.API_URL}${video.full}` : video.full
           }));
-          console.log('Loaded', GALLERY_VIDEOS.length, 'videos from local API');
           currentVideos = [...GALLERY_VIDEOS];
           // Update window references
           window.GALLERY_VIDEOS = GALLERY_VIDEOS;

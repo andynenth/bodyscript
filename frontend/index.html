@@ -619,12 +619,10 @@
       const grid = document.getElementById('videoGrid');
       grid.innerHTML = '';
 
-      console.log('[RENDER] Rendering gallery with videos:', window.currentVideos);
-      console.log('[RENDER] Active category filter:', window.activeCategory);
+      // Render gallery with current videos
 
       // Use currentVideos from window scope (set by gallery-common.js)
       (window.currentVideos || []).forEach(video => {
-        console.log(`[RENDER] Video ${video.id} has category:`, video.category);
         const card = document.createElement('div');
         card.className = 'terminal-card video-card';
         card.dataset.videoId = video.id;
@@ -668,7 +666,6 @@
 
     // Override filterVideos to work with our setup
     window.filterVideos = function(filter) {
-      console.log(`[NAV FILTER] Filtering by category: ${filter}`);
 
       // Clear any active category tag filter
       window.activeCategory = null;
@@ -684,7 +681,6 @@
         window.currentVideos = window.GALLERY_VIDEOS.filter(v => v.category === filter);
       }
 
-      console.log(`[NAV FILTER] Found ${window.currentVideos.length} videos in category ${filter}`);
 
       // Re-render
       renderTerminalGallery();
@@ -695,7 +691,6 @@
     window.allVideos = [];
 
     window.filterByCategory = function(category) {
-      console.log(`[CATEGORY TAG] Filtering by category: ${category}`);
       window.activeCategory = category;
 
       // Create or update active filter display
@@ -720,8 +715,6 @@
         video.category === category
       );
 
-      console.log(`[CATEGORY TAG] Found ${window.currentVideos.length} videos with category ${category}`);
-
       // Update nav buttons to match the filter
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -735,7 +728,6 @@
     };
 
     window.clearCategoryFilter = function() {
-      console.log('[CATEGORY FILTER] Clearing category filter');
       window.activeCategory = null;
 
       const activeFilter = document.getElementById('activeFilter');
@@ -754,7 +746,6 @@
         }
       });
 
-      console.log('[CATEGORY FILTER] Restored all videos:', window.currentVideos.length);
       renderTerminalGallery();
     };
 
@@ -859,8 +850,6 @@
 
       // Check API health
       const health = await window.checkAPIHealth(true);
-      console.log('[INIT] API Health:', health);
-      console.log('[INIT] Tag filtering functionality loaded');
 
       // Update terminal output based on server status
       if (health.coldStart) {
@@ -890,13 +879,8 @@
 
       // Load gallery data
       window.loadGalleryData().then(() => {
-        console.log('[DATA] Gallery data loaded:', window.GALLERY_VIDEOS);
-        console.log('[DATA] Current videos:', window.currentVideos);
-        console.log('[DATA] Sample video category:', window.currentVideos[0]?.category);
-
         // Initialize allVideos for tag filtering
         window.allVideos = [...window.currentVideos];
-        console.log('[DATA] Initialized allVideos for tag filtering');
 
         // After loading data, render the gallery
         renderTerminalGallery();
