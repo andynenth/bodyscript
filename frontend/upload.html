@@ -25,6 +25,7 @@
 
     body {
       font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
       background: #0a0a0a;
       color: var(--text-terminal-green);
       min-height: 100vh;
@@ -70,7 +71,7 @@
     .terminal-title {
       flex: 1;
       text-align: center;
-      color: var(--text-muted);
+      color: var(--text-secondary);  /* Changed from text-muted (#666) to text-secondary (#b0b0b0) for better contrast */
       font-size: 0.9rem;
     }
 
@@ -80,61 +81,35 @@
       min-height: 600px;
     }
 
-    .command-line {
-      margin-bottom: 1rem;
-    }
 
-    .prompt {
-      color: var(--text-terminal-green);
-      display: inline;
-    }
-
-    .command {
-      color: var(--text-primary);
-      margin-left: 0.5rem;
-      display: inline;
-    }
-
-    .cursor {
-      display: inline-block;
-      width: 10px;
-      height: 20px;
-      background: var(--text-terminal-green);
-      animation: blink 1s infinite;
-      margin-left: 2px;
-      vertical-align: text-bottom;
-    }
-
-    @keyframes blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0; }
-    }
-
-    /* ASCII Drop Zone */
+    /* ASCII Drop Zone - Smaller and Centered */
     .ascii-dropzone {
-      margin: 2rem 0;
-      padding: 3rem 2rem;
+      margin: 2rem auto;
+      padding: 2rem 1.5rem;
       border: 2px dashed var(--border-secondary);
       text-align: center;
       transition: all 0.3s;
       cursor: pointer;
       position: relative;
+      max-width: 400px;
+      transform: scale(0.9);
     }
 
     .ascii-dropzone:hover {
       border-color: var(--text-terminal-green);
       background: rgba(39, 201, 63, 0.05);
+      transform: scale(1);
     }
 
     .ascii-dropzone.dragover {
       border-color: var(--text-terminal-green);
       background: rgba(39, 201, 63, 0.1);
       box-shadow: 0 0 20px rgba(39, 201, 63, 0.2);
+      transform: scale(1.02);
     }
 
     .ascii-dropzone.has-file {
-      border-style: solid;
-      border-color: var(--text-terminal-green);
+      display: none !important;
     }
 
     .ascii-art {
@@ -148,9 +123,9 @@
     }
 
     .drop-text {
-      color: var(--text-secondary);
+      color: var(--text-primary);  /* Changed from text-secondary to text-primary for better visibility */
       margin-top: 1rem;
-      font-size: 0.95rem;
+      font-size: 14px;
     }
 
     .file-input {
@@ -161,9 +136,9 @@
       display: inline-block;
       margin-top: 1rem;
       padding: 0.75rem 1.5rem;
-      background: transparent;
-      border: 1px solid var(--text-terminal-green);
-      color: var(--text-terminal-green);
+      background: rgba(39, 201, 63, 0.1);  /* Subtle green background for better visibility */
+      border: 1px solid #27c93f;  /* Bright green border */
+      color: #27c93f;  /* Bright green text */
       text-transform: uppercase;
       font-family: 'JetBrains Mono', monospace;
       font-weight: 600;
@@ -173,57 +148,140 @@
     }
 
     .terminal-btn:hover {
-      background: var(--text-terminal-green);
-      color: #000;
+      background: #27c93f;  /* Solid green on hover */
+      color: #000;  /* Black text on hover for contrast */
       box-shadow: 0 0 20px rgba(39, 201, 63, 0.3);
+      transform: translateY(-2px);  /* Slight lift effect */
     }
 
-    /* File Display */
+    /* File Display - Reorganized */
     .file-display {
       display: none;
-      margin: 2rem 0;
-      padding: 1rem;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid var(--border-secondary);
-      border-radius: 4px;
+      margin: 2rem auto;
+      max-width: 600px;
+      background: rgba(0, 0, 0, 0.3);  /* Consistent with system-info background */
+      border: 1px solid var(--border-secondary);  /* Consistent border color */
+      border-radius: 4px;  /* Consistent with other components */
+      overflow: hidden;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .file-display.show {
       display: block;
     }
 
-    .file-info-line {
-      color: var(--text-secondary);
-      margin: 0.25rem 0;
-      font-size: 0.9rem;
+    .file-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: transparent;  /* Simplified background */
+      border-bottom: 1px solid var(--border-secondary);
     }
 
-    .file-info-label {
-      color: var(--text-terminal-green);
-      display: inline-block;
-      width: 150px;
+    .file-main-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .file-name {
+      color: #27c93f;  /* Green for file name to stand out */
+      font-size: 14px;  /* Consistent font size */
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .file-size {
+      color: var(--text-primary);
+      font-size: 14px;  /* Consistent font size */
+      font-family: 'JetBrains Mono', monospace;
     }
 
     .remove-btn {
-      color: #ff5f56;
-      background: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;  /* Square like other buttons */
       border: 1px solid #ff5f56;
-      padding: 0.5rem 1rem;
-      margin-top: 1rem;
+      background: rgba(255, 95, 86, 0.1);
+      color: #ff5f56;
+      font-size: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      font-family: 'JetBrains Mono', monospace;
       text-transform: uppercase;
-      font-size: 0.85rem;
     }
 
     .remove-btn:hover {
-      background: rgba(255, 95, 86, 0.1);
+      background: #ff5f56;
+      color: #000;  /* Black text on hover for contrast */
+      transform: translateY(-2px);  /* Consistent with other buttons */
+    }
+
+    .details-toggle {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border-secondary);
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;  /* Consistent font size */
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .details-toggle:hover {
+      background: rgba(39, 201, 63, 0.05);
+      color: var(--text-terminal-green);  /* Changed to green for better hover state visibility */
+    }
+
+    .toggle-icon {
+      transition: transform 0.3s ease;
+      display: inline-block;
+    }
+
+    .details-toggle.expanded .toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .file-details {
+      padding: 1rem;
+      background: transparent;
+      animation: expand 0.3s ease;
+    }
+
+    @keyframes expand {
+      from { opacity: 0; max-height: 0; }
+      to { opacity: 1; max-height: 200px; }
+    }
+
+    .file-info-line {
+      color: var(--text-primary);
+      margin: 0.5rem 0;
+      font-size: 14px;  /* Consistent font size */
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .file-info-label {
+      color: #27c93f;  /* Explicit green color */
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
     }
 
     /* System Info */
     .system-info {
-      margin: 2rem 0;
+      margin: 1rem 0 2rem 0;
       padding: 1rem;
       background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-secondary);
@@ -231,14 +289,15 @@
     }
 
     .info-header {
-      color: var(--text-terminal-green);
+      color: #27c93f;  /* Explicit bright green instead of variable to ensure visibility */
       margin-bottom: 0.5rem;
       font-weight: 600;
+      font-size: 14px;
     }
 
     .info-item {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
+      color: var(--text-primary);  /* Changed from text-secondary to text-primary for better readability */
+      font-size: 14px;
       margin: 0.25rem 0;
       padding-left: 1rem;
     }
@@ -253,7 +312,7 @@
 
     .output-line {
       margin: 0.25rem 0;
-      color: var(--text-secondary);
+      color: var(--text-primary);  /* Changed from text-secondary to text-primary for better visibility */
       min-height: 1.2em;
     }
 
@@ -287,7 +346,7 @@
     }
 
     .progress-label {
-      color: var(--text-secondary);
+      color: var(--text-primary);  /* Changed from text-secondary to text-primary for better readability */
       font-size: 0.85rem;
       margin-bottom: 0.25rem;
     }
@@ -346,16 +405,63 @@
     .results-title {
       color: var(--text-terminal-green);
       font-size: 1.2rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       font-weight: 600;
+    }
+
+    /* Video Player */
+    .video-player-container {
+      margin: 2rem 0;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .result-video {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      background: #000;
+    }
+
+    .video-controls-info {
+      padding: 1rem;
+      background: rgba(39, 201, 63, 0.1);
+      border-top: 1px solid var(--border-secondary);
+    }
+
+    .video-label {
+      color: var(--text-primary);  /* Changed from text-secondary to text-primary for better contrast */
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .video-label::before {
+      content: '▶';
+      color: var(--text-terminal-green);
+    }
+
+    /* Result Stats */
+    .result-stats {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
     }
 
     .result-item {
       display: flex;
       justify-content: space-between;
-      padding: 0.5rem 0;
-      border-bottom: 1px dashed rgba(39, 201, 63, 0.3);
-      color: var(--text-secondary);
+      padding: 0.75rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+      color: var(--text-primary);  /* Changed from text-secondary to text-primary for better readability */
     }
 
     .result-value {
@@ -364,10 +470,128 @@
     }
 
     .download-section {
-      margin-top: 1.5rem;
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .button-group {
       display: flex;
       gap: 1rem;
-      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Enhanced Action Buttons */
+    .action-btn {
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, rgba(39, 201, 63, 0.1), rgba(39, 201, 63, 0.05));
+      border: 1px solid var(--text-terminal-green);
+      color: var(--text-terminal-green);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 150px;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(39, 201, 63, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .action-btn:hover::before {
+      left: 100%;
+    }
+
+    .action-btn:hover {
+      background: linear-gradient(135deg, rgba(39, 201, 63, 0.2), rgba(39, 201, 63, 0.1));
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(39, 201, 63, 0.3);
+    }
+
+    .action-btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-icon {
+      flex-shrink: 0;
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.05));
+      border-color: #3498db;
+      color: #3498db;
+    }
+
+    .download-btn:hover {
+      background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(52, 152, 219, 0.1));
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    }
+
+    .reset-btn {
+      background: linear-gradient(135deg, rgba(255, 189, 46, 0.1), rgba(255, 189, 46, 0.05));
+      border-color: #ffbd2e;
+      color: #ffbd2e;
+    }
+
+    .reset-btn:hover {
+      background: linear-gradient(135deg, rgba(255, 189, 46, 0.2), rgba(255, 189, 46, 0.1));
+      box-shadow: 0 4px 12px rgba(255, 189, 46, 0.3);
+    }
+
+    /* Process Button - Consistent with page style */
+    .process-btn {
+      padding: 0.85rem 2rem;
+      background: rgba(39, 201, 63, 0.1);  /* Subtle green background like other buttons */
+      border: 1px solid #27c93f;  /* Green border */
+      color: #27c93f;  /* Green text */
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .process-btn:hover:not(:disabled) {
+      background: #27c93f;  /* Solid green on hover */
+      color: #000;  /* Black text for contrast */
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(39, 201, 63, 0.3);
+    }
+
+    .process-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .process-btn:disabled {
+      background: rgba(100, 100, 100, 0.1);
+      border-color: #666;
+      color: #666;
+      cursor: not-allowed;
+      opacity: 0.6;
     }
 
     /* Back Navigation */
@@ -400,6 +624,7 @@
       margin-bottom: 1rem;
       white-space: pre;
     }
+
 
     /* Responsive */
     @media (max-width: 768px) {
@@ -438,27 +663,19 @@
 
       <!-- Terminal Body -->
       <div class="terminal-body">
-        <!-- ASCII Logo -->
-        <pre class="ascii-logo-small">
-╔════════════════════════════════════╗
-║  BODYSCRIPT v1.0.0 [UPLOAD MODULE] ║
-╚════════════════════════════════════╝</pre>
-
-        <!-- Command Line -->
-        <div class="command-line">
-          <span class="prompt">$</span>
-          <span class="command" id="typeCommand">./bodyscript upload --mode=interactive</span>
-          <span class="cursor" id="cursor"></span>
+        <!-- System Requirements at the top -->
+        <div class="system-info">
+          <div class="info-header">SYSTEM REQUIREMENTS:</div>
+          <div class="info-item">[✓] Video format: MP4/MOV/AVI</div>
+          <div class="info-item">[✓] Maximum size: 50MB</div>
+          <div class="info-item">[✓] Maximum duration: 15 seconds</div>
+          <div class="info-item">[✓] Minimum resolution: 480p</div>
+          <div class="info-item">[✓] Clear human subjects visible</div>
         </div>
 
-        <!-- Terminal Output -->
-        <div class="terminal-output" id="terminalOutput">
-          <div class="output-line">Initializing upload module...</div>
-          <div class="output-line success">[OK] MediaPipe loaded</div>
-          <div class="output-line success">[OK] OpenCV initialized</div>
-          <div class="output-line success">[OK] Ready for video upload</div>
-          <div class="output-line">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
-        </div>
+
+        <!-- Terminal Output (hidden by default for cleaner UI) -->
+        <div class="terminal-output" id="terminalOutput" style="display: none;"></div>
 
         <!-- ASCII Drop Zone -->
         <div class="ascii-dropzone" id="dropZone">
@@ -484,101 +701,106 @@
           </label>
         </div>
 
-        <!-- File Display -->
+        <!-- File Display (Reorganized) -->
         <div class="file-display" id="fileDisplay">
-          <div class="file-info-line">
-            <span class="file-info-label">FILENAME:</span>
-            <span id="fileName">video.mp4</span>
+          <div class="file-header">
+            <div class="file-main-info">
+              <span class="file-name" id="fileName">video.mp4</span>
+              <span class="file-size" id="fileSize">5.2 MB</span>
+            </div>
+            <button class="remove-btn" id="removeBtn">REMOVE</button>
           </div>
-          <div class="file-info-line">
-            <span class="file-info-label">SIZE:</span>
-            <span id="fileSize">5.2 MB</span>
+
+          <button class="details-toggle" id="detailsToggle">
+            <span class="toggle-icon">▼</span> Show Details
+          </button>
+
+          <div class="file-details" id="fileDetails" style="display: none;">
+            <div class="file-info-line">
+              <span class="file-info-label">Duration:</span>
+              <span id="fileDuration">--:--</span>
+            </div>
+            <div class="file-info-line">
+              <span class="file-info-label">Resolution:</span>
+              <span id="fileResolution">----x----</span>
+            </div>
+            <div class="file-info-line">
+              <span class="file-info-label">Frame Rate:</span>
+              <span id="fileFrameRate">-- fps</span>
+            </div>
+            <div class="file-info-line">
+              <span class="file-info-label">Status:</span>
+              <span style="color: var(--text-terminal-green);">Ready for processing</span>
+            </div>
           </div>
-          <div class="file-info-line">
-            <span class="file-info-label">DURATION:</span>
-            <span id="fileDuration">--:--</span>
-          </div>
-          <div class="file-info-line">
-            <span class="file-info-label">RESOLUTION:</span>
-            <span id="fileResolution">----x----</span>
-          </div>
-          <div class="file-info-line">
-            <span class="file-info-label">STATUS:</span>
-            <span style="color: var(--text-terminal-green);">READY</span>
-          </div>
-          <button class="remove-btn" id="removeBtn">[X] REMOVE</button>
         </div>
 
-        <!-- System Requirements -->
-        <div class="system-info">
-          <div class="info-header">SYSTEM REQUIREMENTS:</div>
-          <div class="info-item">[✓] Video format: MP4/MOV/AVI</div>
-          <div class="info-item">[✓] Maximum size: 50MB</div>
-          <div class="info-item">[✓] Maximum duration: 15 seconds</div>
-          <div class="info-item">[✓] Minimum resolution: 480p</div>
-          <div class="info-item">[✓] Clear human subjects visible</div>
-        </div>
 
         <!-- Process Button -->
-        <div style="text-align: center; margin: 2rem 0;">
-          <button class="terminal-btn" id="processBtn" style="padding: 1rem 3rem; font-size: 1.1rem;" disabled>
-            [EXECUTE POSE DETECTION]
+        <div style="text-align: center; margin: 2rem 0; display: flex; justify-content: center;">
+          <button class="process-btn" id="processBtn" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M10,16.5L16,12L10,7.5V16.5Z"/>
+            </svg>
+            Execute Pose Detection
           </button>
         </div>
 
-        <!-- Processing Animation -->
-        <div class="processing-animation" id="processingAnimation">
-          <div class="terminal-output">
-            <div class="output-line processing" id="step1">Uploading video to server...</div>
-            <div class="output-line" id="step2">Extracting frames...</div>
-            <div class="output-line" id="step3">Running MediaPipe detection...</div>
-            <div class="output-line" id="step4">Generating skeleton overlay...</div>
-            <div class="output-line" id="step5">Compressing output...</div>
-          </div>
-
-          <div class="ascii-progress">
-            <div class="progress-label">PROCESSING:</div>
-            <div class="progress-bar-ascii">
-              <span id="progressBar">[░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]</span>
-              <span class="progress-percent" id="progressPercent">0%</span>
-            </div>
-          </div>
-
-          <div style="text-align: center; margin-top: 1rem;">
-            <span class="spinner-ascii" id="spinner">|</span>
-            <span style="color: var(--text-secondary); margin-left: 0.5rem;">Processing frame <span id="currentFrame">0</span>/<span id="totalFrames">0</span></span>
-          </div>
-        </div>
 
         <!-- Results Section -->
         <div class="results-section" id="resultsSection">
           <div class="results-title">[SUCCESS] PROCESSING COMPLETE</div>
-          <div class="result-item">
-            <span>Frames Processed:</span>
-            <span class="result-value" id="resultFrames">450</span>
+
+          <!-- Video Player -->
+          <div class="video-player-container" id="videoPlayerContainer">
+            <video class="result-video" id="resultVideo" controls poster="">
+              <source src="" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <div class="video-controls-info">
+              <span class="video-label">Processed Video with Pose Overlay</span>
+            </div>
           </div>
-          <div class="result-item">
-            <span>Detection Accuracy:</span>
-            <span class="result-value" id="resultAccuracy">96.8%</span>
-          </div>
-          <div class="result-item">
-            <span>Processing Time:</span>
-            <span class="result-value" id="resultTime">12.3s</span>
-          </div>
-          <div class="result-item">
-            <span>Output Size:</span>
-            <span class="result-value" id="resultSize">8.7 MB</span>
+
+          <div class="result-stats">
+            <div class="result-item">
+              <span>Frames Processed:</span>
+              <span class="result-value" id="resultFrames">450</span>
+            </div>
+            <div class="result-item">
+              <span>Detection Accuracy:</span>
+              <span class="result-value" id="resultAccuracy">96.8%</span>
+            </div>
+            <div class="result-item">
+              <span>Processing Time:</span>
+              <span class="result-value" id="resultTime">12.3s</span>
+            </div>
+            <div class="result-item">
+              <span>Output Size:</span>
+              <span class="result-value" id="resultSize">8.7 MB</span>
+            </div>
           </div>
 
           <div class="download-section">
-            <a href="#" class="terminal-btn" id="downloadVideo">
-              [↓] DOWNLOAD VIDEO
-            </a>
-            <a href="#" class="terminal-btn" id="downloadCSV">
-              [↓] DOWNLOAD CSV DATA
-            </a>
-            <button class="terminal-btn" id="resetBtn">
-              [↺] PROCESS ANOTHER
+            <div class="button-group">
+              <button class="action-btn download-btn" id="downloadVideo">
+                <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                </svg>
+                Download Video
+              </button>
+              <button class="action-btn download-btn" id="downloadCSV">
+                <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,19L12,15H14L11.5,19H10M18,14H6V12H18V14M18,11H6V9H18V11Z"/>
+                </svg>
+                Download CSV
+              </button>
+            </div>
+            <button class="action-btn reset-btn" id="resetBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+              </svg>
+              Process Another Video
             </button>
           </div>
         </div>
@@ -587,28 +809,22 @@
   </div>
 
   <script>
-    // Terminal typing effect
-    const command = document.getElementById('typeCommand');
-    const cursor = document.getElementById('cursor');
-    const originalText = command.textContent;
-    command.textContent = '';
-    let charIndex = 0;
+    // Status management (simplified without UI components)
+    function updateStatus(state, text, progress = null) {
+      // Just log the status since we removed the UI components
+      console.log(`[${state.toUpperCase()}] ${text}`, progress ? `(${progress}%)` : '');
+    }
 
-    const typeCommand = () => {
-      if (charIndex < originalText.length) {
-        command.textContent += originalText[charIndex];
-        charIndex++;
-        setTimeout(typeCommand, 50);
-      } else {
-        setTimeout(() => {
-          cursor.style.display = 'none';
-          addOutputLine('', '');
-          addOutputLine('Waiting for user input...', '');
-        }, 500);
-      }
-    };
+    // Update status step (simplified)
+    function updateStatusStep(stepId, isComplete, text = null) {
+      // Just log the step status since we removed the UI components
+      console.log(`Step ${stepId}: ${isComplete ? '✓' : '...'} ${text || ''}`);
+    }
 
-    setTimeout(typeCommand, 500);
+    // Page initialization
+    setTimeout(() => {
+      console.log('Upload page ready');
+    }, 500);
 
     // Terminal output helper
     function addOutputLine(text, className = '') {
@@ -626,13 +842,25 @@
     const fileDisplay = document.getElementById('fileDisplay');
     const processBtn = document.getElementById('processBtn');
     const removeBtn = document.getElementById('removeBtn');
+    const detailsToggle = document.getElementById('detailsToggle');
+    const fileDetails = document.getElementById('fileDetails');
     let selectedFile = null;
+
+    // Details toggle functionality
+    detailsToggle?.addEventListener('click', () => {
+      const isExpanded = fileDetails.style.display !== 'none';
+      fileDetails.style.display = isExpanded ? 'none' : 'block';
+      detailsToggle.classList.toggle('expanded');
+      detailsToggle.innerHTML = isExpanded ?
+        '<span class="toggle-icon">▼</span> Show Details' :
+        '<span class="toggle-icon">▼</span> Hide Details';
+    });
 
     // Drag and drop
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       dropZone.classList.add('dragover');
-      addOutputLine('> File detected. Release to upload.', 'warning');
+      updateStatus('uploading', 'File detected. Release to upload.');
     });
 
     dropZone.addEventListener('dragleave', () => {
@@ -657,17 +885,17 @@
 
     // Handle file
     function handleFile(file) {
-      addOutputLine(`> Analyzing file: ${file.name}`, 'processing');
+      updateStatus('processing', `Analyzing file: ${file.name}`);
 
       // Validate
       const validTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo'];
       if (!validTypes.includes(file.type)) {
-        addOutputLine('[ERROR] Invalid file format. Use MP4, MOV, or AVI.', 'error');
+        updateStatus('error', 'Invalid file format. Use MP4, MOV, or AVI.');
         return;
       }
 
       if (file.size > 50 * 1024 * 1024) {
-        addOutputLine('[ERROR] File exceeds 50MB limit.', 'error');
+        updateStatus('error', 'File exceeds 50MB limit.');
         return;
       }
 
@@ -685,27 +913,40 @@
         document.getElementById('fileResolution').textContent = `${video.videoWidth}x${video.videoHeight}`;
 
         if (video.duration > 15) {
-          addOutputLine('[WARNING] Video exceeds 15s. Will be trimmed.', 'warning');
+          updateStatus('warning', 'Video exceeds 15s. Will be trimmed.');
+          setTimeout(() => {
+            updateStatus('success', `File loaded: ${file.name}`);
+          }, 2000);
+        } else {
+          updateStatus('success', `File loaded: ${file.name}`);
         }
-
-        addOutputLine(`[OK] File loaded: ${file.name}`, 'success');
-        addOutputLine(`    Size: ${formatFileSize(file.size)}`, '');
-        addOutputLine(`    Duration: ${formatDuration(video.duration)}`, '');
-        addOutputLine(`    Resolution: ${video.videoWidth}x${video.videoHeight}`, '');
       });
 
       dropZone.classList.add('has-file');
+      fileDisplay.style.display = 'block';  // Explicitly show the file display
       fileDisplay.classList.add('show');
       processBtn.disabled = false;
     }
 
-    // Remove file
+    // Remove file with confirmation
     removeBtn.addEventListener('click', () => {
-      selectedFile = null;
-      fileDisplay.classList.remove('show');
-      dropZone.classList.remove('has-file');
-      processBtn.disabled = true;
-      addOutputLine('> File removed', 'warning');
+      if (confirm('Remove this file and start over?')) {
+        selectedFile = null;
+        fileDisplay.classList.remove('show');
+        fileDisplay.style.display = 'none';
+        dropZone.classList.remove('has-file');
+        dropZone.style.display = 'block';  // Show drop zone again
+        processBtn.disabled = true;
+        fileInput.value = '';  // Clear the file input so the same file can be selected again
+        updateStatus('ready', 'Waiting for video upload');
+
+        // Reset file details
+        document.getElementById('fileName').textContent = '';
+        document.getElementById('fileSize').textContent = '';
+        document.getElementById('fileDuration').textContent = '--:--';
+        document.getElementById('fileResolution').textContent = '----x----';
+        document.getElementById('fileFrameRate').textContent = '-- fps';
+      }
     });
 
     // Process video
@@ -717,8 +958,7 @@
       }
       console.log('Selected file:', selectedFile.name, selectedFile.size);
 
-      addOutputLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', '');
-      addOutputLine('[CHECKING] Server status...', 'processing');
+      updateStatus('processing', 'Checking server...');
 
       // Check API health first
       let health;
@@ -732,20 +972,13 @@
         health = { healthy: true, coldStart: false, uptime: 0 };
       }
 
-      // Display cold start message in terminal if detected
+      // Update status based on health check
       if (health.coldStart) {
-        addOutputLine('[WARNING] Server starting up (cold start detected)', 'warning');
-        addOutputLine('> First request after idle - this may take 30-60 seconds', 'warning');
-        addOutputLine('> Warming up MediaPipe and OpenCV modules...', '');
-      } else if (health.healthy) {
-        addOutputLine('[OK] Server ready (uptime: ' + Math.floor(health.uptime) + 's)', 'success');
-      } else {
-        addOutputLine('[ERROR] Server not responding', 'error');
-        processBtn.disabled = false;
-        return;
+        updateStatus('warning', 'Server starting up - this may take 30-60 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
-      addOutputLine('[STARTING] Pose detection pipeline', 'success');
+      updateStatus('processing', 'Starting pose detection pipeline', 0);
 
       document.getElementById('processingAnimation').classList.add('show');
       processBtn.disabled = true;
@@ -767,8 +1000,8 @@
       let spinIndex = 0;
 
       // Initialize frame counter (will be updated from backend)
-      document.getElementById('totalFrames').textContent = '?';
-      document.getElementById('currentFrame').textContent = '0';
+      let totalFrames = '?';
+      let currentFrame = '0';
 
       // Animate spinner
       const spinInterval = setInterval(() => {
@@ -778,8 +1011,7 @@
 
       try {
         // Step 1: Upload video
-        document.getElementById('step1').classList.add('processing');
-        addOutputLine('> Uploading video to server...', '');
+        updateStatus('uploading', 'Uploading video to server...', 0);
 
         console.log('API URL:', window.API_URL);
         console.log('Upload endpoint:', `${window.API_URL}/api/upload`);
@@ -801,10 +1033,8 @@
         const uploadData = await uploadResponse.json();
         currentJobId = uploadData.job_id;
 
-        document.getElementById('step1').classList.remove('processing');
-        document.getElementById('step1').classList.add('success');
-        document.getElementById('step1').textContent = '[OK] Upload complete';
-        addOutputLine(`[OK] Job ID: ${currentJobId}`, 'success');
+        updateStatusStep('step1', true, '[✓] Upload complete');
+        updateStatus('processing', 'Extracting frames...', 25);
 
         // Step 2-5: Poll for status
         let lastStep = 1;
@@ -815,56 +1045,39 @@
           // Update progress based on status
           if (status.status === 'processing') {
             const progress = status.progress || 0;
-            updateProgressBar(progress);
+            updateStatus('processing', `Processing frame ${status.current_frame || '?'}/${status.total_frames || '?'}`, progress);
 
             // Update steps based on progress
-            if (progress > 15 && lastStep < 2) {
-              document.getElementById('step2').classList.add('processing');
-              document.getElementById('step2').textContent = 'Extracting frames...';
+            if (progress > 24 && lastStep < 2) {
+              updateStatusStep('step2', true, '[✓] Frames extracted');
               lastStep = 2;
             }
-            if (progress > 24 && lastStep < 3) {
-              document.getElementById('step2').classList.remove('processing');
-              document.getElementById('step2').classList.add('success');
-              document.getElementById('step2').textContent = '[OK] Frames extracted';
-              document.getElementById('step3').classList.add('processing');
-              document.getElementById('step3').textContent = 'Running MediaPipe detection...';
+            if (progress > 75 && lastStep < 3) {
+              updateStatusStep('step3', true, '[✓] Pose detection complete');
               lastStep = 3;
             }
-            if (progress > 75 && lastStep < 4) {
-              document.getElementById('step3').classList.remove('processing');
-              document.getElementById('step3').classList.add('success');
-              document.getElementById('step3').textContent = '[OK] Pose detection complete';
-              document.getElementById('step4').classList.add('processing');
-              document.getElementById('step4').textContent = 'Generating skeleton overlay...';
+            if (progress > 85 && lastStep < 4) {
+              updateStatusStep('step4', true, '[✓] Overlay generated');
               lastStep = 4;
-            }
-            if (progress > 85 && lastStep < 5) {
-              document.getElementById('step4').classList.remove('processing');
-              document.getElementById('step4').classList.add('success');
-              document.getElementById('step4').textContent = '[OK] Overlay generated';
-              document.getElementById('step5').classList.add('processing');
-              document.getElementById('step5').textContent = 'Finalizing output...';
-              lastStep = 5;
             }
 
             // Update frame counter if available
             if (status.current_frame && status.total_frames) {
-              document.getElementById('currentFrame').textContent = status.current_frame;
-              document.getElementById('totalFrames').textContent = status.total_frames;
+              currentFrame = status.current_frame;
+              totalFrames = status.total_frames;
+              console.log(`Processing frame ${currentFrame}/${totalFrames}`);
             }
           } else if (status.status === 'completed') {
             // All steps complete
-            document.getElementById('step5').classList.remove('processing');
-            document.getElementById('step5').classList.add('success');
-            document.getElementById('step5').textContent = '[OK] Processing complete';
-            updateProgressBar(100);
+            updateStatusStep('step5', true, '[✓] Processing complete');
+            updateStatus('success', 'Processing complete!', 100);
 
             // Show results
             clearInterval(spinInterval);
             showResults(status);
             break;
           } else if (status.status === 'failed') {
+            updateStatus('error', status.error || 'Processing failed');
             throw new Error('Processing failed: ' + (status.error || 'Unknown error'));
           }
 
@@ -873,7 +1086,7 @@
         }
       } catch (error) {
         clearInterval(spinInterval);
-        addOutputLine(`[ERROR] ${error.message}`, 'error');
+        updateStatus('error', error.message);
         processBtn.disabled = false;
 
         // Mark failed step
@@ -899,7 +1112,7 @@
       ];
 
       const totalFrames = Math.floor(Math.random() * 200 + 300);
-      document.getElementById('totalFrames').textContent = totalFrames;
+      console.log(`Total frames: ${totalFrames}`);
 
       // ASCII spinner animation
       const spinnerChars = ['|', '/', '-', '\\'];
@@ -919,11 +1132,11 @@
         // Update progress bar
         const progressInterval = setInterval(() => {
           progress = Math.min(progress + 2, ((i + 1) / steps.length) * 100);
-          updateProgressBar(progress);
+          updateStatus('processing', `Processing frame ${Math.floor((progress / 100) * totalFrames)}/${totalFrames}`, progress);
 
           // Update frame counter
           const currentFrame = Math.floor((progress / 100) * totalFrames);
-          document.getElementById('currentFrame').textContent = currentFrame;
+          console.log(`Frame ${currentFrame}/${totalFrames}`);
         }, step.duration / 50);
 
         await new Promise(resolve => setTimeout(resolve, step.duration));
@@ -939,24 +1152,16 @@
       showResults();
     }
 
-    // Update progress bar
-    function updateProgressBar(percent) {
-      const filled = Math.floor((percent / 100) * 30);
-      const empty = 30 - filled;
-      const bar = '[' + '█'.repeat(filled) + '░'.repeat(empty) + ']';
-      document.getElementById('progressBar').textContent = bar;
-      document.getElementById('progressPercent').textContent = Math.floor(percent) + '%';
-    }
 
     // Show results
     function showResults(status) {
       // Use actual results from API or fallback to estimates
-      const totalFrames = status?.total_frames || document.getElementById('totalFrames').textContent;
+      const totalFramesCount = status?.total_frames || totalFrames;
       const accuracy = status?.accuracy || (90 + Math.random() * 8).toFixed(1);
       const processingTime = status?.processing_time || (10 + Math.random() * 5).toFixed(1);
       const outputSize = status?.output_size || selectedFile.size * 1.2;
 
-      document.getElementById('resultFrames').textContent = totalFrames;
+      document.getElementById('resultFrames').textContent = totalFramesCount;
       document.getElementById('resultAccuracy').textContent =
         typeof accuracy === 'number' ? accuracy.toFixed(1) + '%' : accuracy + '%';
       document.getElementById('resultTime').textContent =
@@ -964,24 +1169,47 @@
       document.getElementById('resultSize').textContent =
         typeof outputSize === 'number' ? formatFileSize(outputSize) : outputSize;
 
-      // Set download links with actual API endpoints
+      // Set up video player and download buttons
       if (currentJobId) {
-        document.getElementById('downloadVideo').href =
-          `${window.API_URL}/api/download/${currentJobId}/video`;
-        document.getElementById('downloadVideo').download =
-          `processed_${selectedFile.name}`;
+        // Load video in player
+        const videoPlayer = document.getElementById('resultVideo');
+        const videoUrl = `${window.API_URL}/api/download/${currentJobId}/video`;
+        videoPlayer.src = videoUrl;
 
-        document.getElementById('downloadCSV').href =
-          `${window.API_URL}/api/download/${currentJobId}/csv`;
-        document.getElementById('downloadCSV').download =
-          `pose_data_${selectedFile.name.replace(/\.[^/.]+$/, '')}.csv`;
+        // Create poster frame from first frame
+        videoPlayer.addEventListener('loadedmetadata', () => {
+          videoPlayer.currentTime = 0.1;
+        });
+
+        videoPlayer.addEventListener('seeked', () => {
+          // Auto-play after loading
+          videoPlayer.play().catch(err => {
+            console.log('Auto-play prevented:', err);
+          });
+        }, { once: true });
+
+        // Set up download buttons
+        const videoBtn = document.getElementById('downloadVideo');
+        const csvBtn = document.getElementById('downloadCSV');
+
+        videoBtn.onclick = () => {
+          const link = document.createElement('a');
+          link.href = videoUrl;
+          link.download = `processed_${selectedFile.name}`;
+          link.click();
+        };
+
+        csvBtn.onclick = () => {
+          const link = document.createElement('a');
+          link.href = `${window.API_URL}/api/download/${currentJobId}/csv`;
+          link.download = `pose_data_${selectedFile.name.replace(/\.[^/.]+$/, '')}.csv`;
+          link.click();
+        };
       }
 
       document.getElementById('resultsSection').classList.add('show');
 
-      addOutputLine('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', '');
-      addOutputLine('[COMPLETE] Processing finished successfully', 'success');
-      addOutputLine('> Output files ready for download', '');
+      // Status is already updated to success in the processing loop
 
       // Scroll to results
       document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
