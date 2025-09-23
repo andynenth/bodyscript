@@ -750,6 +750,7 @@
       /* Base Typography - Prevent zoom */
       body {
         font-size: 16px;
+        padding: 0.5rem;
       }
 
       /* Container adjustments */
@@ -795,11 +796,14 @@
         margin: 1rem auto;
       }
 
-      /* File Info Card */
+      /* File Info Card - Stack vertically on mobile */
       .file-info {
         padding: 0.75rem;
         margin-bottom: 1rem;
         margin-top: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
       }
 
       .file-name {
@@ -815,6 +819,8 @@
         white-space: nowrap;
         font-size: 11px;
         padding: 0.25rem 0.5rem;
+        align-self: flex-start;
+        width: auto;
       }
 
       /* Buttons - Stack vertically */
@@ -878,15 +884,32 @@
         min-height: 48px;
       }
 
+      /* Process button container - reduce spacing */
+      .process-btn-container {
+        margin: 1rem 0 0.5rem 0;
+      }
+
       /* File Display */
       .file-display {
         margin: 1rem auto;
         padding: 1rem;
       }
 
+      /* Stack file header vertically on mobile */
+      .file-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      .file-main-info {
+        width: 100%;
+      }
+
       .remove-btn {
         min-width: 44px;
         min-height: 44px;
+        align-self: flex-start;
       }
 
       /* Details Toggle */
@@ -903,6 +926,24 @@
       /* Hide download-section (not used) */
       .download-section {
         flex-direction: column;
+      }
+
+      /* Hide terminal dots on mobile */
+      .terminal-dot {
+        display: none;
+      }
+
+      /* Shorten button text on mobile */
+      #downloadPoseData .btn-text::after {
+        content: 'POSE DATA';
+      }
+
+      #downloadPoseData .btn-text {
+        font-size: 0;
+      }
+
+      #downloadPoseData .btn-text::after {
+        font-size: 16px;
       }
     }
 
@@ -948,13 +989,13 @@
 
     .modal-close {
       position: absolute;
-      top: -40px;
-      right: 0;
-      background: transparent;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.8);
       border: 1px solid var(--text-terminal-green);
       color: var(--text-terminal-green);
-      width: 32px;
-      height: 32px;
+      width: 40px;
+      height: 40px;
       border-radius: 0;
       font-size: 24px;
       cursor: pointer;
@@ -963,21 +1004,13 @@
       align-items: center;
       justify-content: center;
       font-family: 'JetBrains Mono', monospace;
+      z-index: 10001;
     }
 
     .modal-close:hover {
       background: var(--text-terminal-green);
       color: #000;
       transform: rotate(90deg);
-    }
-
-    .modal-title {
-      position: absolute;
-      bottom: -40px;
-      left: 0;
-      color: var(--text-terminal-green);
-      font-size: 14px;
-      font-family: 'JetBrains Mono', monospace;
     }
 
     /* Make video container clickable */
@@ -1130,7 +1163,7 @@
             </button>
             <button class="terminal-btn btn-secondary" id="downloadPoseData">
               <span class="icon">[☷]</span>
-              DOWNLOAD POSE DATA
+              <span class="btn-text">DOWNLOAD POSE DATA</span>
             </button>
             <button class="terminal-btn" id="resetBtn">
               <span class="icon">[↺]</span>
@@ -1149,7 +1182,6 @@
       <video class="modal-video" controls controlsList="nodownload">
         <source src="" type="video/mp4">
       </video>
-      <div class="modal-title"></div>
     </div>
   </div>
 
@@ -1165,9 +1197,11 @@
         const progressPercent = document.getElementById('progressPercent');
 
         if (progressBar && progressPercent) {
-          // Calculate filled blocks (50 total characters)
-          const filled = Math.floor((progress / 100) * 50);
-          const empty = 50 - filled;
+          // Calculate filled blocks (responsive: 30 on mobile, 50 on desktop)
+          const isMobile = window.innerWidth < 768;
+          const barLength = isMobile ? 30 : 50;
+          const filled = Math.floor((progress / 100) * barLength);
+          const empty = barLength - filled;
           const bar = '[' + '█'.repeat(filled) + '░'.repeat(empty) + ']';
 
           progressBar.textContent = bar;
@@ -1419,9 +1453,11 @@
             const progress = status.progress || 0;
             updateStatus('processing', `Processing frame ${status.current_frame || '?'}/${status.total_frames || '?'}`, progress);
 
-            // Update the progress bar display
-            const filled = Math.floor((progress / 100) * 50);
-            const empty = 50 - filled;
+            // Update the progress bar display (responsive: 30 on mobile, 50 on desktop)
+            const isMobile = window.innerWidth < 768;
+            const barLength = isMobile ? 30 : 50;
+            const filled = Math.floor((progress / 100) * barLength);
+            const empty = barLength - filled;
             const bar = '[' + '█'.repeat(filled) + '░'.repeat(empty) + ']';
             const progressBar = document.getElementById('progressBar');
             const progressPercent = document.getElementById('progressPercent');
@@ -1643,7 +1679,6 @@
       const modal = document.querySelector('.video-modal');
       const modalVideo = modal.querySelector('.modal-video');
       const modalClose = modal.querySelector('.modal-close');
-      const modalTitle = modal.querySelector('.modal-title');
       const videoContainer = document.querySelector('.video-player-container');
 
       // Click on video container to open modal
@@ -1652,7 +1687,6 @@
           const resultVideo = document.getElementById('resultVideo');
           if (resultVideo && resultVideo.src) {
             modalVideo.src = resultVideo.src;
-            modalTitle.textContent = '> Playing: Processed Video';
             modal.classList.add('active');
 
             // Pause the small video and play the modal video
