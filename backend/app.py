@@ -5,6 +5,7 @@ Portfolio MVP version - simple, functional, demonstrable.
 """
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
+from pydantic import BaseModel
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -188,7 +189,7 @@ async def upload_video(
     job_id = str(uuid.uuid4())
 
     # Create temp directory for this job
-    temp_dir = Path("web/temp") / job_id
+    temp_dir = Path("temp") / job_id
     temp_dir.mkdir(parents=True, exist_ok=True)
 
     try:
@@ -346,6 +347,116 @@ async def cancel_job(job_id: str):
         return {"message": f"Job {job_id} cancellation requested"}
     else:
         return {"message": f"Job {job_id} already {job['status']}, cannot cancel"}
+
+
+# Request model for local video processing
+class ProcessLocalVideoRequest(BaseModel):
+    file_path: str
+
+
+@app.post("/api/process-local")
+async def process_local_video(
+    background_tasks: BackgroundTasks,
+    request: ProcessLocalVideoRequest
+):
+    """
+    Process a video that already exists in the backend/temp directory.
+
+    Args:
+        file_path: Path to the video file relative to backend/temp directory
+
+    Returns:
+        job_id and initial status
+    """
+    from pathlib import Path
+    import os
+
+    # Security: Ensure the path is within temp directory
+    temp_base = Path("temp")
+    video_path = temp_base / request.file_path
+
+    # Validate path security (prevent directory traversal)
+    try:
+        video_path = video_path.resolve()
+        temp_base_resolved = temp_base.resolve()
+        if not str(video_path).startswith(str(temp_base_resolved)):
+            raise HTTPException(
+                status_code=403,
+                detail="Access denied: File must be within temp directory"
+            )
+    except Exception:
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid file path"
+        )
+
+    # Check if file exists
+    if not video_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"File not found: {request.file_path}"
+        )
+
+    # Validate file extension
+    file_ext = video_path.suffix.lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+
+    # Generate unique job ID
+    job_id = str(uuid.uuid4())
+
+    # Create job directory and copy video
+    job_dir = Path("temp") / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        # Copy video to job directory
+        input_path = job_dir / f"input{file_ext}"
+        shutil.copy2(video_path, input_path)
+
+        # Check file size
+        file_size_mb = os.path.getsize(input_path) / (1024 * 1024)
+        if file_size_mb > MAX_VIDEO_SIZE_MB:
+            shutil.rmtree(job_dir)
+            raise HTTPException(
+                status_code=400,
+                detail=f"Video too large. Maximum size: {MAX_VIDEO_SIZE_MB}MB"
+            )
+
+        # Initialize job status
+        jobs_status[job_id] = {
+            "job_id": job_id,
+            "status": "pending",
+            "progress": 0,
+            "message": "Local video loaded successfully",
+            "created_at": datetime.now().isoformat(),
+            "filename": video_path.name,
+            "file_size_mb": round(file_size_mb, 2),
+            "source": "local"
+        }
+
+        # Process video in background
+        background_tasks.add_task(
+            process_video_task,
+            job_id,
+            str(input_path)
+        )
+
+        return {
+            "job_id": job_id,
+            "status": "pending",
+            "message": f"Local video '{video_path.name}' loaded. Processing will begin shortly.",
+            "file_size_mb": round(file_size_mb, 2)
+        }
+
+    except Exception as e:
+        # Clean up on error
+        if job_dir.exists():
+            shutil.rmtree(job_dir)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/download/{job_id}/video")

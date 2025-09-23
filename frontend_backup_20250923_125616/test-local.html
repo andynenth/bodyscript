@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Tag Filtering Integration</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+        }
+        .status { padding: 10px; margin: 10px 0; border: 1px solid #0f0; }
+        .pass { background: rgba(0, 255, 0, 0.2); }
+        .fail { background: rgba(255, 0, 0, 0.2); border-color: #f00; color: #f00; }
+        button { padding: 10px; margin: 10px 0; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Testing Tag Filtering in index.html</h1>
+
+    <button onclick="runTests()">Run Tests</button>
+
+    <div id="results"></div>
+
+    <script>
+        function runTests() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>Test Results:</h2>';
+
+            // Test 1: Check if filterByTag function exists
+            const test1 = window.parent.filterByTag !== undefined;
+            results.innerHTML += `
+                <div class="status ${test1 ? 'pass' : 'fail'}">
+                    Test 1: filterByTag function exists - ${test1 ? 'PASS' : 'FAIL'}
+                </div>
+            `;
+
+            // Test 2: Check if clearTagFilter function exists
+            const test2 = window.parent.clearTagFilter !== undefined;
+            results.innerHTML += `
+                <div class="status ${test2 ? 'pass' : 'fail'}">
+                    Test 2: clearTagFilter function exists - ${test2 ? 'PASS' : 'FAIL'}
+                </div>
+            `;
+
+            // Test 3: Check if allVideos array is initialized
+            const test3 = window.parent.allVideos !== undefined && Array.isArray(window.parent.allVideos);
+            results.innerHTML += `
+                <div class="status ${test3 ? 'pass' : 'fail'}">
+                    Test 3: allVideos array is initialized - ${test3 ? 'PASS' : 'FAIL'}
+                </div>
+            `;
+
+            // Test 4: Check if videos have tags
+            const test4 = window.parent.currentVideos && window.parent.currentVideos.length > 0 &&
+                         window.parent.currentVideos[0].tags !== undefined;
+            results.innerHTML += `
+                <div class="status ${test4 ? 'pass' : 'fail'}">
+                    Test 4: Videos have tags property - ${test4 ? 'PASS' : 'FAIL'}
+                </div>
+            `;
+
+            // Summary
+            const allPassed = test1 && test2 && test3 && test4;
+            results.innerHTML += `
+                <h3>Summary: ${allPassed ? 'All tests PASSED ✓' : 'Some tests FAILED ✗'}</h3>
+                <p>Open http://localhost:8000/index.html and check browser console for debug logs</p>
+                <p>Click on any tag to test filtering functionality</p>
+            `;
+        }
+
+        // Auto-run tests when loaded in iframe
+        if (window !== window.parent) {
+            setTimeout(runTests, 1000);
+        }
+    </script>
+</body>
+</html>
