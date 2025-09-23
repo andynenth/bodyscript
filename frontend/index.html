@@ -638,11 +638,9 @@
         const categoryTag = video.category ?
           `<span class="tag" onclick="window.filterByCategory('${video.category}')">#${video.category}</span>` : '';
 
+        // Don't create video element initially, just store the preview URL
         card.innerHTML = `
-          <div class="video-container ratio-9-16">
-            <video class="preview-video" muted loop playsinline>
-              <source src="${video.preview}" type="video/mp4">
-            </video>
+          <div class="video-container ratio-9-16" data-preview="${video.preview}">
             <img class="thumbnail" src="${video.thumbnail}" alt="${video.title}">
             <div class="ascii-play">▶</div>
             <div class="video-name-overlay">${video.title || video.id}</div>
@@ -650,22 +648,53 @@
           </div>
         `;
 
+        // Store video data on the card for later use
+        card.dataset.videoPreview = video.preview;
+        card.dataset.videoFull = video.full;
+        card.dataset.videoTitle = video.title || video.id;
+
         grid.appendChild(card);
       });
 
-      // Reinitialize interactions
-      GalleryCommon.initializeGallery();
+      // Reinitialize interactions after a small delay to ensure DOM is ready
+      setTimeout(() => {
+        GalleryCommon.initializeGallery();
+      }, 100);
     }
 
     // Override the common render function
     GalleryCommon.renderGallery = renderTerminalGallery;
+
+    // Override filterVideos to work with our setup
+    window.filterVideos = function(filter) {
+      console.log(`[NAV FILTER] Filtering by category: ${filter}`);
+
+      // Clear any active category tag filter
+      window.activeCategory = null;
+      const activeFilter = document.getElementById('activeFilter');
+      if (activeFilter) {
+        activeFilter.classList.remove('show');
+      }
+
+      // Apply the filter
+      if (filter === 'all') {
+        window.currentVideos = [...window.GALLERY_VIDEOS];
+      } else {
+        window.currentVideos = window.GALLERY_VIDEOS.filter(v => v.category === filter);
+      }
+
+      console.log(`[NAV FILTER] Found ${window.currentVideos.length} videos in category ${filter}`);
+
+      // Re-render
+      renderTerminalGallery();
+    };
 
     // Category tag filtering functionality
     window.activeCategory = null;
     window.allVideos = [];
 
     window.filterByCategory = function(category) {
-      console.log(`[CATEGORY FILTER] Filtering by category: ${category}`);
+      console.log(`[CATEGORY TAG] Filtering by category: ${category}`);
       window.activeCategory = category;
 
       // Create or update active filter display
@@ -685,22 +714,17 @@
       document.getElementById('filterTag').textContent = `#${category}`;
       activeFilter.classList.add('show');
 
-      // Filter videos
-      if (!window.allVideos.length) {
-        window.allVideos = [...window.currentVideos];
-      }
-
-      window.currentVideos = window.allVideos.filter(video =>
+      // Filter videos using GALLERY_VIDEOS as source
+      window.currentVideos = window.GALLERY_VIDEOS.filter(video =>
         video.category === category
       );
 
-      console.log(`[CATEGORY FILTER] Found ${window.currentVideos.length} videos with category ${category}`);
-      console.log('[CATEGORY FILTER] Filtered videos:', window.currentVideos);
+      console.log(`[CATEGORY TAG] Found ${window.currentVideos.length} videos with category ${category}`);
 
-      // Reset category filter to 'all'
+      // Update nav buttons to match the filter
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.dataset.filter === 'all') {
+        if (btn.dataset.filter === category) {
           btn.classList.add('active');
         }
       });
@@ -719,16 +743,21 @@
       }
 
       // Restore all videos
-      if (window.allVideos.length) {
-        window.currentVideos = [...window.allVideos];
-      }
+      window.currentVideos = [...window.GALLERY_VIDEOS];
+
+      // Reset nav buttons to 'all'
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === 'all') {
+          btn.classList.add('active');
+        }
+      });
 
       console.log('[CATEGORY FILTER] Restored all videos:', window.currentVideos.length);
       renderTerminalGallery();
     };
 
-    // Initial render
-    renderTerminalGallery();
+    // Don't render until data is loaded - removed initial render
 
     // Initialize Video Modal Player
     function initializeVideoModal() {

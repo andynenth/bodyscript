@@ -164,38 +164,110 @@ const SAMPLE_VIDEOS = [
 let currentFilter = 'all';
 let currentVideos = [];
 
-// Hover preview functionality
+// Hover preview functionality with lazy loading
 function initializeHoverPreview() {
   document.querySelectorAll('.video-card').forEach(card => {
     const container = card.querySelector('.video-container');
-    const video = card.querySelector('.preview-video');
     const thumbnail = card.querySelector('.thumbnail');
-    const progressBar = card.querySelector('.progress-fill');
 
     let hoverTimeout;
     let playbackTimeout;
+    let previewVideo = null;
+    let isCreating = false;
 
     container.addEventListener('mouseenter', () => {
+      clearTimeout(hoverTimeout);
       hoverTimeout = setTimeout(() => {
-        // Show video and hide thumbnail
-        thumbnail.style.display = 'none';
-        video.style.display = 'block';
+        // Create video element on-demand if it doesn't exist
+        if (!previewVideo && !isCreating) {
+          const previewUrl = card.dataset.videoPreview;
+          if (!previewUrl) {
+            console.log('[HOVER] No preview URL found on card:', card);
+            return;
+          }
 
-        // Reset and play video
-        video.currentTime = 0;
-        video.play().catch(err => {
-          console.log('Autoplay prevented:', err);
-          // Fallback to showing thumbnail
-          thumbnail.style.display = 'block';
-          video.style.display = 'none';
-        });
+          isCreating = true;
+          console.log('[HOVER] Creating video element for:', previewUrl);
 
-        // Progress bar removed - no longer needed
+          // Check if URL needs API_URL prefix
+          let fullPreviewUrl = previewUrl;
+          if (previewUrl.startsWith('/api/')) {
+            fullPreviewUrl = `${window.API_URL || 'http://localhost:8000'}${previewUrl}`;
+            console.log('[HOVER] Adjusted preview URL to:', fullPreviewUrl);
+          }
+
+          previewVideo = document.createElement('video');
+          previewVideo.className = 'preview-video';
+          previewVideo.muted = true;
+          previewVideo.loop = true;
+          previewVideo.playsInline = true;
+          previewVideo.preload = 'auto';
+          previewVideo.style.display = 'none';
+          previewVideo.style.position = 'absolute';
+          previewVideo.style.top = '0';
+          previewVideo.style.left = '0';
+          previewVideo.style.width = '100%';
+          previewVideo.style.height = '100%';
+          previewVideo.style.objectFit = 'cover';
+          previewVideo.style.zIndex = '10';  // Ensure it's above the thumbnail
+
+          const source = document.createElement('source');
+          source.src = fullPreviewUrl;
+          source.type = 'video/mp4';
+          previewVideo.appendChild(source);
+
+          container.appendChild(previewVideo);
+          console.log('[HOVER] Video element added to container');
+
+          // Add error handler
+          previewVideo.addEventListener('error', (e) => {
+            console.error('[HOVER] Video error:', e);
+            console.error('[HOVER] Video error detail:', previewVideo.error);
+            isCreating = false;
+          });
+
+          // Wait for video to be ready then play
+          previewVideo.addEventListener('canplay', function onCanPlay() {
+            console.log('[HOVER] Video can play, hover state:', container.matches(':hover'));
+            previewVideo.removeEventListener('canplay', onCanPlay);
+            isCreating = false;
+
+            // Only play if still hovering
+            if (container.matches(':hover')) {
+              console.log('[HOVER] Attempting to play video');
+              thumbnail.style.display = 'none';
+              previewVideo.style.display = 'block';
+              previewVideo.currentTime = 0;
+              previewVideo.play().then(() => {
+                console.log('[HOVER] Video playing successfully');
+              }).catch(err => {
+                console.error('[HOVER] Play failed:', err);
+                thumbnail.style.display = 'block';
+                previewVideo.style.display = 'none';
+              });
+            }
+          });
+
+          // Load the video
+          previewVideo.load();
+        } else if (previewVideo && !isCreating) {
+          // Video already exists, just play it
+          thumbnail.style.display = 'none';
+          previewVideo.style.display = 'block';
+          previewVideo.currentTime = 0;
+          previewVideo.play().catch(err => {
+            console.log('[HOVER] Play failed:', err);
+            thumbnail.style.display = 'block';
+            previewVideo.style.display = 'none';
+          });
+        }
 
         // Stop after 3 seconds
         playbackTimeout = setTimeout(() => {
-          video.pause();
-          video.currentTime = 0;
+          if (previewVideo) {
+            previewVideo.pause();
+            previewVideo.currentTime = 0;
+          }
         }, 3000);
       }, 500); // 500ms delay before preview starts
     });
@@ -204,13 +276,23 @@ function initializeHoverPreview() {
       clearTimeout(hoverTimeout);
       clearTimeout(playbackTimeout);
 
-      // Pause and reset video
-      video.pause();
-      video.currentTime = 0;
+      if (previewVideo) {
+        // Pause and reset video
+        previewVideo.pause();
+        previewVideo.currentTime = 0;
+        previewVideo.style.display = 'none';
+      }
 
       // Show thumbnail again
-      video.style.display = 'none';
       thumbnail.style.display = 'block';
+
+      // Clean up video element after a delay to free resources
+      setTimeout(() => {
+        if (previewVideo && !container.matches(':hover')) {
+          previewVideo.remove();
+          previewVideo = null;
+        }
+      }, 1000);
     });
   });
 }
@@ -239,16 +321,23 @@ function initializeFullScreenPlayer() {
   // Open modal on card click
   document.querySelectorAll('.video-card').forEach(card => {
     card.addEventListener('click', (e) => {
-      // Don't open modal if clicking on buttons
-      if (e.target.closest('button')) return;
+      // Don't open modal if clicking on buttons or tags
+      if (e.target.closest('button') || e.target.classList.contains('tag')) return;
 
-      const videoId = card.dataset.videoId;
-      const video = SAMPLE_VIDEOS.find(v => v.id == videoId);
+      // Use dataset attributes instead of looking up in array
+      const videoFull = card.dataset.videoFull;
+      const videoTitle = card.dataset.videoTitle;
 
-      if (video) {
-        modalVideo.src = video.full;
+      console.log('[MODAL] Opening video:', videoTitle, 'URL:', videoFull);
+
+      if (videoFull) {
+        modalVideo.src = videoFull;
         modal.classList.add('active');
-        modalVideo.play();
+        modalVideo.play().catch(err => {
+          console.error('[MODAL] Failed to play video:', err);
+        });
+      } else {
+        console.error('[MODAL] No video URL found on card');
       }
     });
   });
@@ -434,7 +523,10 @@ function formatNumber(num) {
 // Initialize everything
 function initializeGallery() {
   initializeHoverPreview();
-  initializeFullScreenPlayer();
+  // Don't initialize duplicate modal if page has its own
+  if (!document.querySelector('.video-modal')) {
+    initializeFullScreenPlayer();
+  }
   initializeFilters();
   initializeLazyLoading();
   initializeTouchSupport();
