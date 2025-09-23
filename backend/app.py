@@ -335,14 +335,15 @@ async def cancel_job(job_id: str):
 
     # Only cancel if still processing
     if job["status"] in ["pending", "processing"]:
-        job["status"] = "cancelled"
+        # Mark as cancelled but don't delete files yet
+        # The processing thread will detect this and clean up
         job["cancelled"] = True
-        job["message"] = "Job cancelled by user"
+        job["message"] = "Cancellation requested"
 
-        # Clean up files
-        processor.cleanup_job(job_id)
+        # Don't immediately clean up files - let the processing thread do it
+        # This avoids race conditions with OpenCV trying to read deleted files
 
-        return {"message": f"Job {job_id} cancelled successfully"}
+        return {"message": f"Job {job_id} cancellation requested"}
     else:
         return {"message": f"Job {job_id} already {job['status']}, cannot cancel"}
 

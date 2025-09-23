@@ -16,6 +16,17 @@
 
   <!-- Terminal upload styles -->
   <style>
+    /* Additional CSS Variables needed */
+    :root {
+      --text-terminal-green: #27c93f;
+      --hover-bg: rgba(255, 255, 255, 0.05);
+      --success-color: #27c93f;
+      --danger-color: #ff5f56;
+      --text-error: #ff5f56;
+      --text-warning: #ffbd2e;
+      --text-info: #5ac8fa;
+    }
+
     /* Terminal Theme */
     * {
       margin: 0;
@@ -125,6 +136,7 @@
     .drop-text {
       color: var(--text-primary);  /* Changed from text-secondary to text-primary for better visibility */
       margin-top: 1rem;
+      margin-bottom: 1.5rem;
       font-size: 14px;
     }
 
@@ -132,27 +144,6 @@
       display: none;
     }
 
-    .terminal-btn {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.75rem 1.5rem;
-      background: rgba(39, 201, 63, 0.1);  /* Subtle green background for better visibility */
-      border: 1px solid #27c93f;  /* Bright green border */
-      color: #27c93f;  /* Bright green text */
-      text-transform: uppercase;
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-    }
-
-    .terminal-btn:hover {
-      background: #27c93f;  /* Solid green on hover */
-      color: #000;  /* Black text on hover for contrast */
-      box-shadow: 0 0 20px rgba(39, 201, 63, 0.3);
-      transform: translateY(-2px);  /* Slight lift effect */
-    }
 
     /* File Display - Reorganized */
     .file-display {
@@ -254,7 +245,6 @@
     }
 
     .file-details {
-      padding: 1rem;
       background: transparent;
       animation: expand 0.3s ease;
     }
@@ -435,7 +425,7 @@
     }
 
     .results-title {
-      color: var(--text-terminal-green);
+      color: #27c93f !important;  /* Bright green, force it */
       font-size: 14px;  /* Consistent font size */
       margin-bottom: 1.5rem;
       font-weight: 600;
@@ -449,12 +439,37 @@
       width: 300px;
       height: 200px;
       background: #000;
-      border: 1px solid var(--text-terminal-green);
+      border: 1px solid var(--border-secondary);
       overflow: hidden;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.3s ease;
+    }
+
+    .video-player-container:hover {
+      border-color: var(--text-terminal-green);
+    }
+
+    /* Play icon overlay */
+    .video-player-container::after {
+      content: '▶';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      color: rgba(39, 201, 63, 0.8);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      text-shadow: 0 0 20px rgba(39, 201, 63, 0.5);
+    }
+
+    .video-player-container:hover::after {
+      opacity: 1;
     }
 
     .result-video {
@@ -484,43 +499,123 @@
       color: var(--text-terminal-green);
     }
 
-    /* Result Stats */
-    .result-stats {
+    /* Download Components Styles */
+
+    .section-title {
+      font-size: 14px;
+      color: var(--text-terminal-green);
       margin-top: 2rem;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .file-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      margin-top: 2rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+    }
+
+    .file-name {
+      color: var(--text-terminal-green);
+      margin-bottom: 0.5rem;
       font-size: 14px;
     }
 
-    .result-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.75rem;
-      background: transparent;
-      border: 1px solid var(--border-secondary);
-      border-radius: 0;  /* Square for terminal style */
-      color: var(--text-primary);
+    .file-details {
+      color: var(--text-secondary);
+      font-size: 12px;
     }
 
-    .result-value {
+    .file-details span {
       color: var(--text-terminal-green);
-      font-weight: 600;
-      font-family: 'JetBrains Mono', monospace;
     }
 
-    .download-section {
-      margin-top: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      background: rgba(39, 201, 63, 0.1);
+      border: 1px solid var(--success-color);
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--success-color);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      flex-shrink: 0;
+    }
+
+    /* Terminal Button Style */
+    .terminal-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      padding: 0.75rem 1.5rem;
+      background: rgba(0, 0, 0, 0.5);
+      color: var(--text-terminal-green);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .terminal-btn:hover {
+      background: var(--hover-bg);
+      border-color: var(--text-terminal-green);
+      transform: translateY(-1px);
+    }
+
+    .terminal-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Primary Action Button */
+    .btn-primary {
+      border-color: var(--success-color);
+      color: var(--success-color);
+    }
+
+    .btn-primary:hover {
+      background: rgba(39, 201, 63, 0.1);
+      box-shadow: 0 0 10px rgba(39, 201, 63, 0.3);
+    }
+
+    /* Secondary Action Button */
+    .btn-secondary {
+      border-color: #5ac8fa;
+      color: #5ac8fa;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(90, 200, 250, 0.1);
+      box-shadow: 0 0 10px rgba(90, 200, 250, 0.3);
+    }
+
+    /* Icon */
+    .icon {
+      font-family: 'JetBrains Mono', monospace;
+      display: inline-block;
     }
 
     .button-group {
       display: flex;
       gap: 1rem;
       justify-content: center;
+      margin-top: 2rem !important;
+      padding-top: 1rem;
     }
 
     /* Terminal-style Action Buttons */
@@ -574,25 +669,27 @@
     }
 
     .download-btn {
-      background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.05));
-      border-color: #3498db;
-      color: #3498db;
+      background: transparent;
+      border-color: var(--text-terminal-green);
+      color: var(--text-terminal-green);
     }
 
     .download-btn:hover {
-      background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(52, 152, 219, 0.1));
-      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+      background: rgba(39, 201, 63, 0.1);
+      border-color: var(--text-terminal-green);
+      box-shadow: none;
     }
 
     .reset-btn {
-      background: linear-gradient(135deg, rgba(255, 189, 46, 0.1), rgba(255, 189, 46, 0.05));
-      border-color: #ffbd2e;
-      color: #ffbd2e;
+      background: transparent;
+      border-color: var(--text-terminal-green);
+      color: var(--text-terminal-green);
     }
 
     .reset-btn:hover {
-      background: linear-gradient(135deg, rgba(255, 189, 46, 0.2), rgba(255, 189, 46, 0.1));
-      box-shadow: 0 4px 12px rgba(255, 189, 46, 0.3);
+      background: rgba(39, 201, 63, 0.1);
+      border-color: var(--text-terminal-green);
+      box-shadow: none;
     }
 
     /* Process Button - Consistent with page style */
@@ -660,6 +757,85 @@
       .download-section {
         flex-direction: column;
       }
+    }
+
+    /* Video Modal Player - Exact same as index.html */
+    .video-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+
+    .modal-video {
+      width: auto !important;
+      height: auto !important;
+      max-width: 90vw !important;
+      max-height: 90vh !important;
+      object-fit: contain !important;
+      background: #000 !important;
+      border: 1px solid var(--text-terminal-green) !important;
+      border-radius: 0 !important;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: transparent;
+      border: 1px solid var(--text-terminal-green);
+      color: var(--text-terminal-green);
+      width: 32px;
+      height: 32px;
+      border-radius: 0;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .modal-close:hover {
+      background: var(--text-terminal-green);
+      color: #000;
+      transform: rotate(90deg);
+    }
+
+    .modal-title {
+      position: absolute;
+      bottom: -40px;
+      left: 0;
+      color: var(--text-terminal-green);
+      font-size: 14px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Make video container clickable */
+    .video-player-container {
+      cursor: pointer;
     }
   </style>
 </head>
@@ -786,49 +962,47 @@
             </video>
           </div>
 
-          <div class="result-stats">
-            <div class="result-item">
-              <span>Frames Processed:</span>
-              <span class="result-value" id="resultFrames">450</span>
+          <!-- Download Components -->
+          <div class="file-info">
+            <div>
+              <div class="file-name" id="processedFileName">Processed Video</div>
+              <div class="file-details">
+                Frames: <span id="resultFrames">0</span> |
+                Accuracy: <span id="resultAccuracy">0%</span> |
+                Time: <span id="resultTime">0s</span> |
+                Size: <span id="resultSize">0 MB</span>
+              </div>
             </div>
-            <div class="result-item">
-              <span>Detection Accuracy:</span>
-              <span class="result-value" id="resultAccuracy">96.8%</span>
-            </div>
-            <div class="result-item">
-              <span>Processing Time:</span>
-              <span class="result-value" id="resultTime">12.3s</span>
-            </div>
-            <div class="result-item">
-              <span>Output Size:</span>
-              <span class="result-value" id="resultSize">8.7 MB</span>
-            </div>
+            <div class="status-badge">✓ COMPLETE</div>
           </div>
 
-          <div class="download-section">
-            <div class="button-group">
-              <button class="action-btn download-btn" id="downloadVideo">
-                <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
-                  <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-                </svg>
-                Download Video
-              </button>
-              <button class="action-btn download-btn" id="downloadCSV">
-                <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
-                  <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,19L12,15H14L11.5,19H10M18,14H6V12H18V14M18,11H6V9H18V11Z"/>
-                </svg>
-                Download CSV
-              </button>
-            </div>
-            <button class="action-btn reset-btn" id="resetBtn">
-              <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20">
-                <path fill="currentColor" d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
-              </svg>
-              Process Another Video
+          <div class="button-group">
+            <button class="terminal-btn btn-primary" id="downloadVideo">
+              <span class="icon">[↓]</span>
+              DOWNLOAD VIDEO
+            </button>
+            <button class="terminal-btn btn-secondary" id="downloadPoseData">
+              <span class="icon">[☷]</span>
+              DOWNLOAD POSE DATA
+            </button>
+            <button class="terminal-btn" id="resetBtn">
+              <span class="icon">[↺]</span>
+              PROCESS ANOTHER
             </button>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Video Modal - Exact same as index.html -->
+  <div class="video-modal">
+    <div class="modal-content">
+      <button class="modal-close">×</button>
+      <video class="modal-video" controls controlsList="nodownload">
+        <source src="" type="video/mp4">
+      </video>
+      <div class="modal-title"></div>
     </div>
   </div>
 
@@ -1131,6 +1305,12 @@
               currentFrame = status.current_frame;
               totalFrames = status.total_frames;
               console.log(`Processing frame ${currentFrame}/${totalFrames}`);
+
+              // Update the UI elements
+              const currentFrameEl = document.getElementById('currentFrame');
+              const totalFramesEl = document.getElementById('totalFrames');
+              if (currentFrameEl) currentFrameEl.textContent = currentFrame;
+              if (totalFramesEl) totalFramesEl.textContent = totalFrames;
             }
           } else if (status.status === 'completed') {
             // All steps complete
@@ -1235,6 +1415,10 @@
       const processingTime = status?.processing_time || (10 + Math.random() * 5).toFixed(1);
       const outputSize = status?.output_size || selectedFile.size * 1.2;
 
+      // Update file name display
+      document.getElementById('processedFileName').textContent = selectedFile.name;
+
+      // Update stats
       document.getElementById('resultFrames').textContent = totalFramesCount;
       document.getElementById('resultAccuracy').textContent =
         typeof accuracy === 'number' ? accuracy.toFixed(1) + '%' : accuracy + '%';
@@ -1259,7 +1443,6 @@
 
         // Set up download buttons
         const videoBtn = document.getElementById('downloadVideo');
-        const csvBtn = document.getElementById('downloadCSV');
 
         videoBtn.onclick = () => {
           const link = document.createElement('a');
@@ -1268,12 +1451,24 @@
           link.click();
         };
 
-        csvBtn.onclick = () => {
-          const link = document.createElement('a');
-          link.href = `${window.API_URL}/api/download/${currentJobId}/csv`;
-          link.download = `pose_data_${selectedFile.name.replace(/\.[^/.]+$/, '')}.csv`;
-          link.click();
-        };
+        // Update to download both CSV and JSON
+        const poseDataBtn = document.getElementById('downloadPoseData');
+        if (poseDataBtn) {
+          poseDataBtn.onclick = () => {
+            // Download CSV
+            const csvLink = document.createElement('a');
+            csvLink.href = `${window.API_URL}/api/download/${currentJobId}/csv`;
+            csvLink.download = `pose_data_${selectedFile.name.replace(/\.[^/.]+$/, '')}.csv`;
+            csvLink.click();
+
+            // If JSON endpoint exists, download it too (for future)
+            // Note: Backend would need to implement JSON export endpoint
+            // const jsonLink = document.createElement('a');
+            // jsonLink.href = `${window.API_URL}/api/download/${currentJobId}/json`;
+            // jsonLink.download = `pose_data_${selectedFile.name.replace(/\.[^/.]+$/, '')}.json`;
+            // setTimeout(() => jsonLink.click(), 100);
+          };
+        }
       }
 
       document.getElementById('resultsSection').classList.add('show');
@@ -1295,6 +1490,66 @@
       if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
       return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
+
+    // Initialize Video Modal functionality - same as index.html
+    function initializeVideoModal() {
+      const modal = document.querySelector('.video-modal');
+      const modalVideo = modal.querySelector('.modal-video');
+      const modalClose = modal.querySelector('.modal-close');
+      const modalTitle = modal.querySelector('.modal-title');
+      const videoContainer = document.querySelector('.video-player-container');
+
+      // Click on video container to open modal
+      if (videoContainer) {
+        videoContainer.addEventListener('click', () => {
+          const resultVideo = document.getElementById('resultVideo');
+          if (resultVideo && resultVideo.src) {
+            modalVideo.src = resultVideo.src;
+            modalTitle.textContent = '> Playing: Processed Video';
+            modal.classList.add('active');
+
+            // Pause the small video and play the modal video
+            resultVideo.pause();
+            modalVideo.play();
+          }
+        });
+      }
+
+      // Close modal handlers
+      modalClose.addEventListener('click', () => {
+        modal.classList.remove('active');
+        modalVideo.pause();
+        modalVideo.src = '';
+        // Resume the small video
+        const resultVideo = document.getElementById('resultVideo');
+        if (resultVideo) resultVideo.play();
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+          modalVideo.pause();
+          modalVideo.src = '';
+          // Resume the small video
+          const resultVideo = document.getElementById('resultVideo');
+          if (resultVideo) resultVideo.play();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          modal.classList.remove('active');
+          modalVideo.pause();
+          modalVideo.src = '';
+          // Resume the small video
+          const resultVideo = document.getElementById('resultVideo');
+          if (resultVideo) resultVideo.play();
+        }
+      });
+    }
+
+    // Initialize the modal when page loads
+    initializeVideoModal();
 
     function formatDuration(seconds) {
       const mins = Math.floor(seconds / 60);
