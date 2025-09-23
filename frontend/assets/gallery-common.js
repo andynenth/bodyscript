@@ -318,7 +318,13 @@ async function loadGalleryData() {
       if (response.ok) {
         const data = await response.json();
         if (data.videos && data.videos.length > 0) {
-          GALLERY_VIDEOS = data.videos;
+          // Fix URLs to use backend API URL
+          GALLERY_VIDEOS = data.videos.map(video => ({
+            ...video,
+            thumbnail: video.thumbnail.startsWith('/') ? `${window.API_URL}${video.thumbnail}` : video.thumbnail,
+            preview: video.preview.startsWith('/') ? `${window.API_URL}${video.preview}` : video.preview,
+            full: video.full.startsWith('/') ? `${window.API_URL}${video.full}` : video.full
+          }));
           console.log('Loaded', GALLERY_VIDEOS.length, 'videos from local API');
           currentVideos = [...GALLERY_VIDEOS];
           // Update window references

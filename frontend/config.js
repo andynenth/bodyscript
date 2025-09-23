@@ -68,8 +68,8 @@ const Config = {
 };
 
 // Set global API URL
-// TEMPORARY: Force local API for testing
-window.API_URL = 'http://localhost:8000';  // Config.getApiUrl();
+// Using same port as frontend since backend serves both
+window.API_URL = 'http://localhost:8000';
 
 // Initialize keep-alive mechanism if enabled
 if (Config.keepAlive.enabled) {

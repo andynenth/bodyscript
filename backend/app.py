@@ -105,7 +105,28 @@ async def get_gallery():
 
     if gallery_file.exists():
         with open(gallery_file) as f:
-            return json.load(f)
+            data = json.load(f)
+
+            # Add tags to each video based on category
+            tag_mapping = {
+                'dance': ['#bodyscript', '#dance', '#movement', '#posedetection'],
+                'martial': ['#bodyscript', '#martial', '#sports', '#combat'],
+                'sports': ['#bodyscript', '#sports', '#athletics', '#fitness'],
+                'yoga': ['#bodyscript', '#yoga', '#wellness', '#mindfulness']
+            }
+
+            for video in data.get('videos', []):
+                category = video.get('category', 'dance')
+                video['tags'] = tag_mapping.get(category, ['#bodyscript', '#movement'])
+                # Add title-specific tags
+                if 'salif' in video.get('title', '').lower():
+                    video['tags'].append('#hiphop')
+                elif 'shaolin' in video.get('title', '').lower():
+                    video['tags'].append('#kungfu')
+                elif 'teofimo' in video.get('title', '').lower():
+                    video['tags'].append('#boxing')
+
+            return data
 
     # Return empty gallery if no file exists
     return {"videos": []}

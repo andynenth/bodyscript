@@ -372,6 +372,65 @@
         grid-template-columns: 1fr;
       }
     }
+    /* Category Tags */
+    .video-category-tag {
+      position: absolute;
+      bottom: 40px;
+      right: 8px;
+      z-index: 3;
+    }
+
+    .tag {
+      display: inline-block;
+      background: rgba(39, 201, 63, 0.1);
+      border: 1px solid var(--text-terminal-green);
+      color: var(--text-terminal-green);
+      padding: 2px 8px;
+      margin: 2px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .tag:hover {
+      background: var(--text-terminal-green);
+      color: #000;
+      transform: translateY(-1px);
+    }
+
+    /* Active filter display */
+    .active-filter {
+      background: var(--text-terminal-green);
+      color: #000;
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+      display: none;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .active-filter.show {
+      display: flex;
+    }
+
+    .clear-filter {
+      background: #000;
+      color: var(--text-terminal-green);
+      border: 1px solid #000;
+      padding: 0.25rem 0.75rem;
+      cursor: pointer;
+      margin-left: 1rem;
+      border-radius: 2px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+    }
+
+    .clear-filter:hover {
+      background: rgba(0, 0, 0, 0.7);
+    }
+
     /* API Status Indicator */
     #api-status {
       position: fixed;
@@ -560,8 +619,12 @@
       const grid = document.getElementById('videoGrid');
       grid.innerHTML = '';
 
+      console.log('[RENDER] Rendering gallery with videos:', window.currentVideos);
+      console.log('[RENDER] Active category filter:', window.activeCategory);
+
       // Use currentVideos from window scope (set by gallery-common.js)
       (window.currentVideos || []).forEach(video => {
+        console.log(`[RENDER] Video ${video.id} has category:`, video.category);
         const card = document.createElement('div');
         card.className = 'terminal-card video-card';
         card.dataset.videoId = video.id;
@@ -571,6 +634,10 @@
         if (video.accuracy < 90) accuracyClass = 'accuracy-medium';
         if (video.accuracy < 80) accuracyClass = 'accuracy-low';
 
+        // Add category tag if it exists
+        const categoryTag = video.category ?
+          `<span class="tag" onclick="window.filterByCategory('${video.category}')">#${video.category}</span>` : '';
+
         card.innerHTML = `
           <div class="video-container ratio-9-16">
             <video class="preview-video" muted loop playsinline>
@@ -579,6 +646,7 @@
             <img class="thumbnail" src="${video.thumbnail}" alt="${video.title}">
             <div class="ascii-play">▶</div>
             <div class="video-name-overlay">${video.title || video.id}</div>
+            ${categoryTag ? `<div class="video-category-tag">${categoryTag}</div>` : ''}
           </div>
         `;
 
@@ -591,6 +659,73 @@
 
     // Override the common render function
     GalleryCommon.renderGallery = renderTerminalGallery;
+
+    // Category tag filtering functionality
+    window.activeCategory = null;
+    window.allVideos = [];
+
+    window.filterByCategory = function(category) {
+      console.log(`[CATEGORY FILTER] Filtering by category: ${category}`);
+      window.activeCategory = category;
+
+      // Create or update active filter display
+      let activeFilter = document.getElementById('activeFilter');
+      if (!activeFilter) {
+        activeFilter = document.createElement('div');
+        activeFilter.id = 'activeFilter';
+        activeFilter.className = 'active-filter';
+        activeFilter.innerHTML = `
+          Filtering by: <span id="filterTag"></span>
+          <button class="clear-filter" onclick="window.clearCategoryFilter()">Clear</button>
+        `;
+        const nav = document.querySelector('.terminal-nav');
+        nav.parentElement.insertBefore(activeFilter, nav.nextSibling);
+      }
+
+      document.getElementById('filterTag').textContent = `#${category}`;
+      activeFilter.classList.add('show');
+
+      // Filter videos
+      if (!window.allVideos.length) {
+        window.allVideos = [...window.currentVideos];
+      }
+
+      window.currentVideos = window.allVideos.filter(video =>
+        video.category === category
+      );
+
+      console.log(`[CATEGORY FILTER] Found ${window.currentVideos.length} videos with category ${category}`);
+      console.log('[CATEGORY FILTER] Filtered videos:', window.currentVideos);
+
+      // Reset category filter to 'all'
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === 'all') {
+          btn.classList.add('active');
+        }
+      });
+
+      // Re-render
+      renderTerminalGallery();
+    };
+
+    window.clearCategoryFilter = function() {
+      console.log('[CATEGORY FILTER] Clearing category filter');
+      window.activeCategory = null;
+
+      const activeFilter = document.getElementById('activeFilter');
+      if (activeFilter) {
+        activeFilter.classList.remove('show');
+      }
+
+      // Restore all videos
+      if (window.allVideos.length) {
+        window.currentVideos = [...window.allVideos];
+      }
+
+      console.log('[CATEGORY FILTER] Restored all videos:', window.currentVideos.length);
+      renderTerminalGallery();
+    };
 
     // Initial render
     renderTerminalGallery();
@@ -694,7 +829,8 @@
 
       // Check API health
       const health = await window.checkAPIHealth(true);
-      console.log('API Health:', health);
+      console.log('[INIT] API Health:', health);
+      console.log('[INIT] Tag filtering functionality loaded');
 
       // Update terminal output based on server status
       if (health.coldStart) {
@@ -724,8 +860,14 @@
 
       // Load gallery data
       window.loadGalleryData().then(() => {
-        console.log('Gallery data loaded:', window.GALLERY_VIDEOS);
-        console.log('Current videos:', window.currentVideos);
+        console.log('[DATA] Gallery data loaded:', window.GALLERY_VIDEOS);
+        console.log('[DATA] Current videos:', window.currentVideos);
+        console.log('[DATA] Sample video category:', window.currentVideos[0]?.category);
+
+        // Initialize allVideos for tag filtering
+        window.allVideos = [...window.currentVideos];
+        console.log('[DATA] Initialized allVideos for tag filtering');
+
         // After loading data, render the gallery
         renderTerminalGallery();
       });
