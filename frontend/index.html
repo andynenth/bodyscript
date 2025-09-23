@@ -154,7 +154,6 @@
     .terminal-card {
       background: var(--bg-terminal);
       border: 1px solid var(--border-secondary);
-      border-radius: 4px;
       overflow: hidden;
       transition: all 0.3s;
       cursor: pointer;
@@ -163,8 +162,6 @@
 
     .terminal-card:hover {
       border-color: var(--text-terminal-green);
-      box-shadow: 0 0 20px rgba(39, 201, 63, 0.2);
-      transform: translateY(-4px);
     }
 
     .terminal-card .video-container {
@@ -218,7 +215,7 @@
       transition: opacity 0.3s;
       pointer-events: none;
       z-index: 3;
-      text-shadow: 0 0 10px rgba(39, 201, 63, 0.8);
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
     }
 
     .terminal-card:hover .ascii-play {
@@ -391,6 +388,77 @@
     #api-status .success { color: var(--text-terminal-green); }
     #api-status .warning { color: #ffbd2e; }
     #api-status .error { color: #ff5f56; }
+
+    /* Video Modal Player */
+    .video-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 90%;
+      max-height: 90vh;
+    }
+
+    .modal-video {
+      width: auto !important;
+      height: auto !important;
+      max-width: 90vw !important;
+      max-height: 85vh !important;
+      display: block;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      width: 40px;
+      height: 40px;
+      background: transparent;
+      border: 2px solid var(--text-terminal-green);
+      color: var(--text-terminal-green);
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .modal-close:hover {
+      background: var(--text-terminal-green);
+      color: #000;
+      transform: rotate(90deg);
+    }
+
+    .modal-title {
+      position: absolute;
+      bottom: -40px;
+      left: 0;
+      color: var(--text-terminal-green);
+      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
   </style>
 </head>
 <body>
@@ -526,6 +594,73 @@
 
     // Initial render
     renderTerminalGallery();
+
+    // Initialize Video Modal Player
+    function initializeVideoModal() {
+      // Create modal if it doesn't exist
+      if (!document.querySelector('.video-modal')) {
+        const modal = document.createElement('div');
+        modal.className = 'video-modal';
+        modal.innerHTML = `
+          <div class="modal-content">
+            <button class="modal-close">×</button>
+            <video class="modal-video" controls controlsList="nodownload">
+              <source src="" type="video/mp4">
+            </video>
+            <div class="modal-title"></div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+
+      const modal = document.querySelector('.video-modal');
+      const modalVideo = modal.querySelector('.modal-video');
+      const modalClose = modal.querySelector('.modal-close');
+      const modalTitle = modal.querySelector('.modal-title');
+
+      // Handle clicks on video cards
+      document.addEventListener('click', (e) => {
+        const card = e.target.closest('.terminal-card');
+        if (card && !e.target.closest('button')) {
+          const videoId = card.dataset.videoId;
+          const videos = window.currentVideos || [];
+          const video = videos.find(v => v.id == videoId);
+
+          if (video) {
+            modalVideo.src = video.full;
+            modalTitle.textContent = `> Playing: ${video.title || video.id}`;
+            modal.classList.add('active');
+            modalVideo.play();
+          }
+        }
+      });
+
+      // Close modal handlers
+      modalClose.addEventListener('click', () => {
+        modal.classList.remove('active');
+        modalVideo.pause();
+        modalVideo.src = '';
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+          modalVideo.pause();
+          modalVideo.src = '';
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          modal.classList.remove('active');
+          modalVideo.pause();
+          modalVideo.src = '';
+        }
+      });
+    }
+
+    // Initialize the video modal
+    initializeVideoModal();
 
     // Terminal typing effect for prompt
     const command = document.querySelector('.terminal-command');
