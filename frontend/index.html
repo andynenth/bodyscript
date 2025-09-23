@@ -656,9 +656,10 @@
         grid.appendChild(card);
       });
 
-      // Reinitialize interactions after a small delay to ensure DOM is ready
+      // Only initialize interactions for new elements
       setTimeout(() => {
-        GalleryCommon.initializeGallery();
+        // Only initialize hover for new elements (not already initialized)
+        GalleryCommon.initializeHoverPreview();
       }, 100);
     }
 
@@ -899,6 +900,15 @@
 
         // After loading data, render the gallery
         renderTerminalGallery();
+
+        // Initialize gallery features only once
+        if (!window.galleryFullyInitialized) {
+          // Initialize non-hover features (filters, modal, etc)
+          GalleryCommon.initializeFilters();
+          GalleryCommon.initializeLazyLoading();
+          GalleryCommon.initializeTouchSupport();
+          window.galleryFullyInitialized = true;
+        }
       });
     });
   </script>

@@ -164,11 +164,19 @@ const SAMPLE_VIDEOS = [
 let currentFilter = 'all';
 let currentVideos = [];
 
+// Track initialization to prevent duplicate event listeners
+let galleryInitialized = false;
+
 // Hover preview functionality with lazy loading
 function initializeHoverPreview() {
   document.querySelectorAll('.video-card').forEach(card => {
     const container = card.querySelector('.video-container');
     const thumbnail = card.querySelector('.thumbnail');
+
+    // Skip if already initialized
+    if (container && container.dataset.hoverInitialized === 'true') {
+      return;
+    }
 
     let hoverTimeout;
     let playbackTimeout;
@@ -294,6 +302,11 @@ function initializeHoverPreview() {
         }
       }, 1000);
     });
+
+    // Mark container as initialized
+    if (container) {
+      container.dataset.hoverInitialized = 'true';
+    }
   });
 }
 
@@ -532,12 +545,8 @@ function initializeGallery() {
   initializeTouchSupport();
 }
 
-// Wait for DOM to be ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeGallery);
-} else {
-  initializeGallery();
-}
+// Don't auto-initialize anymore - let the page control it
+// This prevents duplicate initialization
 
 // Export for use in individual gallery pages
 window.GalleryCommon = {
@@ -546,7 +555,11 @@ window.GalleryCommon = {
   formatNumber,
   filterVideos,
   renderGallery,
-  initializeGallery
+  initializeGallery,
+  initializeHoverPreview,
+  initializeFilters,
+  initializeLazyLoading,
+  initializeTouchSupport
 };
 
 // Also expose the main data arrays to window
