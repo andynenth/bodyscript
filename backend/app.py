@@ -241,6 +241,10 @@ async def upload_video(
 def process_video_task(job_id: str, video_path: str):
     """Background task to process video."""
     def update_progress(progress: int, message: str):
+        # Check if job was cancelled
+        if jobs_status[job_id].get("cancelled"):
+            raise Exception("Job cancelled by user")
+
         jobs_status[job_id]["progress"] = progress
         jobs_status[job_id]["message"] = message
         jobs_status[job_id]["status"] = "processing"
@@ -284,12 +288,22 @@ def process_video_task(job_id: str, video_path: str):
             })
 
     except Exception as e:
-        jobs_status[job_id].update({
-            "status": "failed",
-            "message": f"Processing failed: {str(e)}",
-            "error": str(e),
-            "completed_at": datetime.now().isoformat()
-        })
+        # Check if it was a cancellation
+        if "cancelled by user" in str(e).lower() or jobs_status[job_id].get("cancelled"):
+            jobs_status[job_id].update({
+                "status": "cancelled",
+                "message": "Job cancelled by user",
+                "completed_at": datetime.now().isoformat()
+            })
+            # Clean up files for cancelled job
+            processor.cleanup_job(job_id)
+        else:
+            jobs_status[job_id].update({
+                "status": "failed",
+                "message": f"Processing failed: {str(e)}",
+                "error": str(e),
+                "completed_at": datetime.now().isoformat()
+            })
 
 
 @app.get("/api/status/{job_id}")
@@ -309,6 +323,28 @@ async def get_job_status(job_id: str):
             status["queue_total"] = len(pending_jobs)
 
     return status
+
+
+@app.post("/api/cancel/{job_id}")
+async def cancel_job(job_id: str):
+    """Cancel a processing job."""
+    if job_id not in jobs_status:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    job = jobs_status[job_id]
+
+    # Only cancel if still processing
+    if job["status"] in ["pending", "processing"]:
+        job["status"] = "cancelled"
+        job["cancelled"] = True
+        job["message"] = "Job cancelled by user"
+
+        # Clean up files
+        processor.cleanup_job(job_id)
+
+        return {"message": f"Job {job_id} cancelled successfully"}
+    else:
+        return {"message": f"Job {job_id} already {job['status']}, cannot cancel"}
 
 
 @app.get("/api/download/{job_id}/video")

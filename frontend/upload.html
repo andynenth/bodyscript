@@ -96,8 +96,8 @@
     }
 
     .ascii-dropzone:hover {
-      border-color: var(--text-terminal-green);
-      background: rgba(39, 201, 63, 0.05);
+      border-color: var(--border-secondary);  /* Keep the same gray border on hover */
+      background: rgba(255, 255, 255, 0.05);  /* Same subtle white highlight as details-toggle */
       transform: scale(1);
     }
 
@@ -113,11 +113,11 @@
     }
 
     .ascii-art {
-      color: var(--text-terminal-green);
+      color: #27c93f;  /* Explicit bright green color */
       font-size: 0.9rem;
       line-height: 1.2;
       margin-bottom: 1rem;
-      opacity: 0.8;
+      opacity: 1;  /* Full opacity for better visibility */
       white-space: pre;
       font-family: 'JetBrains Mono', monospace;
     }
@@ -240,8 +240,8 @@
     }
 
     .details-toggle:hover {
-      background: rgba(39, 201, 63, 0.05);
-      color: var(--text-terminal-green);  /* Changed to green for better hover state visibility */
+      background: rgba(255, 255, 255, 0.05);  /* Subtle white highlight instead of green */
+      color: var(--text-primary);  /* Keep text the same light gray color */
     }
 
     .toggle-icon {
@@ -339,6 +339,20 @@
       50% { opacity: 0.3; }
     }
 
+    /* Processing Animation */
+    .processing-animation {
+      margin: 2rem auto;
+      max-width: 600px;
+      padding: 1.5rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-secondary);
+      border-radius: 4px;
+    }
+
+    .processing-animation.show {
+      display: block !important;
+    }
+
     /* ASCII Progress Bar */
     .ascii-progress {
       margin: 1rem 0;
@@ -346,31 +360,49 @@
     }
 
     .progress-label {
-      color: var(--text-primary);  /* Changed from text-secondary to text-primary for better readability */
-      font-size: 0.85rem;
-      margin-bottom: 0.25rem;
+      color: #27c93f;  /* Bright green for visibility */
+      font-size: 14px;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
     }
 
     .progress-bar-ascii {
-      color: var(--text-terminal-green);
-      font-size: 0.9rem;
+      color: #27c93f;  /* Bright green progress bar */
+      font-size: 14px;
+      font-family: 'JetBrains Mono', monospace;
       letter-spacing: -1px;
     }
 
     .progress-percent {
-      color: var(--text-terminal-green);
-      margin-left: 0.5rem;
+      color: #27c93f;  /* Bright green percentage */
+      margin-left: 1rem;
       font-weight: 600;
+      font-size: 14px;
     }
 
-    /* Processing Animation */
-    .processing-animation {
-      display: none;
+    .frame-counter {
+      color: var(--text-primary);
+      font-size: 14px;
+      margin-top: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Hidden state utility */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Process button container */
+    .process-btn-container {
+      text-align: center;
       margin: 2rem 0;
+      display: flex;
+      justify-content: center;
     }
 
-    .processing-animation.show {
-      display: block;
+    /* Status ready text */
+    .status-ready {
+      color: #27c93f;
     }
 
     .spinner-ascii {
@@ -393,9 +425,9 @@
       display: none;
       margin-top: 2rem;
       padding: 1.5rem;
-      background: rgba(39, 201, 63, 0.05);
-      border: 1px solid var(--text-terminal-green);
-      border-radius: 4px;
+      background: transparent;
+      border: 1px solid var(--border-secondary);
+      border-radius: 0;  /* Square corners for terminal style */
     }
 
     .results-section.show {
@@ -404,25 +436,31 @@
 
     .results-title {
       color: var(--text-terminal-green);
-      font-size: 1.2rem;
+      font-size: 14px;  /* Consistent font size */
       margin-bottom: 1.5rem;
       font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
     }
 
-    /* Video Player */
+    /* Video Player - Fixed size like test-hover-debug.html */
     .video-player-container {
-      margin: 2rem 0;
+      margin: 2rem auto;
+      width: 300px;
+      height: 200px;
       background: #000;
-      border-radius: 8px;
+      border: 1px solid var(--text-terminal-green);
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .result-video {
       width: 100%;
-      max-width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: cover;
       display: block;
       background: #000;
     }
@@ -452,21 +490,24 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
     }
 
     .result-item {
       display: flex;
       justify-content: space-between;
       padding: 0.75rem;
-      background: rgba(0, 0, 0, 0.3);
+      background: transparent;
       border: 1px solid var(--border-secondary);
-      border-radius: 4px;
-      color: var(--text-primary);  /* Changed from text-secondary to text-primary for better readability */
+      border-radius: 0;  /* Square for terminal style */
+      color: var(--text-primary);
     }
 
     .result-value {
       color: var(--text-terminal-green);
       font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
     }
 
     .download-section {
@@ -482,18 +523,18 @@
       justify-content: center;
     }
 
-    /* Enhanced Action Buttons */
+    /* Terminal-style Action Buttons */
     .action-btn {
       padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, rgba(39, 201, 63, 0.1), rgba(39, 201, 63, 0.05));
+      background: transparent;
       border: 1px solid var(--text-terminal-green);
       color: var(--text-terminal-green);
       font-family: 'JetBrains Mono', monospace;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 14px;  /* Consistent font size */
       cursor: pointer;
-      transition: all 0.3s ease;
-      border-radius: 6px;
+      transition: all 0.2s ease;
+      border-radius: 0;  /* Square for terminal style */
       display: flex;
       align-items: center;
       gap: 0.75rem;
@@ -501,6 +542,7 @@
       justify-content: center;
       position: relative;
       overflow: hidden;
+      text-transform: uppercase;
     }
 
     .action-btn::before {
@@ -519,9 +561,8 @@
     }
 
     .action-btn:hover {
-      background: linear-gradient(135deg, rgba(39, 201, 63, 0.2), rgba(39, 201, 63, 0.1));
+      background: rgba(39, 201, 63, 0.1);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(39, 201, 63, 0.3);
     }
 
     .action-btn:active {
@@ -594,26 +635,6 @@
       opacity: 0.6;
     }
 
-    /* Back Navigation */
-    .nav-header {
-      margin-bottom: 2rem;
-    }
-
-    .back-link {
-      color: var(--text-terminal-green);
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.2s;
-      padding: 0.5rem 1rem;
-      border: 1px solid transparent;
-    }
-
-    .back-link:hover {
-      border-color: var(--text-terminal-green);
-      background: rgba(39, 201, 63, 0.05);
-    }
 
     /* ASCII Logo */
     .ascii-logo-small {
@@ -644,13 +665,6 @@
 </head>
 <body>
   <div class="terminal-container">
-    <!-- Navigation -->
-    <nav class="nav-header">
-      <a href="index.html" class="back-link">
-        <span>←</span> ./gallery
-      </a>
-    </nav>
-
     <!-- Terminal Window -->
     <div class="terminal-window">
       <!-- Terminal Header -->
@@ -675,14 +689,14 @@
 
 
         <!-- Terminal Output (hidden by default for cleaner UI) -->
-        <div class="terminal-output" id="terminalOutput" style="display: none;"></div>
+        <div class="terminal-output hidden" id="terminalOutput"></div>
 
         <!-- ASCII Drop Zone -->
         <div class="ascii-dropzone" id="dropZone">
           <pre class="ascii-art">
     ╭─────────────────────────╮
     │                         │
-    │    📹  DROP VIDEO       │
+    │       DROP VIDEO        │
     │         HERE            │
     │                         │
     │    ╱│、                 │
@@ -715,7 +729,7 @@
             <span class="toggle-icon">▼</span> Show Details
           </button>
 
-          <div class="file-details" id="fileDetails" style="display: none;">
+          <div class="file-details hidden" id="fileDetails">
             <div class="file-info-line">
               <span class="file-info-label">Duration:</span>
               <span id="fileDuration">--:--</span>
@@ -730,15 +744,15 @@
             </div>
             <div class="file-info-line">
               <span class="file-info-label">Status:</span>
-              <span style="color: var(--text-terminal-green);">Ready for processing</span>
+              <span class="status-ready">Ready for processing</span>
             </div>
           </div>
         </div>
 
 
         <!-- Process Button -->
-        <div style="text-align: center; margin: 2rem 0; display: flex; justify-content: center;">
-          <button class="process-btn" id="processBtn" disabled>
+        <div class="process-btn-container" id="processBtnContainer">
+          <button class="process-btn hidden" id="processBtn">
             <svg class="btn-icon" viewBox="0 0 24 24" width="24" height="24">
               <path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M10,16.5L16,12L10,7.5V16.5Z"/>
             </svg>
@@ -746,6 +760,19 @@
           </button>
         </div>
 
+        <!-- Processing Animation -->
+        <div class="processing-animation hidden" id="processingAnimation">
+          <div class="ascii-progress">
+            <div class="progress-label">PROCESSING:</div>
+            <div class="progress-bar-ascii">
+              <span id="progressBar">[░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]</span>
+              <span class="progress-percent" id="progressPercent">0%</span>
+            </div>
+            <div class="frame-counter">
+              Processing frame <span id="currentFrame">0</span>/<span id="totalFrames">0</span>
+            </div>
+          </div>
+        </div>
 
         <!-- Results Section -->
         <div class="results-section" id="resultsSection">
@@ -753,13 +780,10 @@
 
           <!-- Video Player -->
           <div class="video-player-container" id="videoPlayerContainer">
-            <video class="result-video" id="resultVideo" controls poster="">
+            <video class="result-video" id="resultVideo" muted autoplay loop playsInline>
               <source src="" type="video/mp4">
               Your browser does not support the video tag.
             </video>
-            <div class="video-controls-info">
-              <span class="video-label">Processed Video with Pose Overlay</span>
-            </div>
           </div>
 
           <div class="result-stats">
@@ -809,10 +833,26 @@
   </div>
 
   <script>
-    // Status management (simplified without UI components)
+    // Status management
     function updateStatus(state, text, progress = null) {
-      // Just log the status since we removed the UI components
+      // Log the status
       console.log(`[${state.toUpperCase()}] ${text}`, progress ? `(${progress}%)` : '');
+
+      // Update progress bar if progress is provided
+      if (progress !== null) {
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+
+        if (progressBar && progressPercent) {
+          // Calculate filled blocks (50 total characters)
+          const filled = Math.floor((progress / 100) * 50);
+          const empty = 50 - filled;
+          const bar = '[' + '█'.repeat(filled) + '░'.repeat(empty) + ']';
+
+          progressBar.textContent = bar;
+          progressPercent.textContent = `${Math.round(progress)}%`;
+        }
+      }
     }
 
     // Update status step (simplified)
@@ -848,8 +888,12 @@
 
     // Details toggle functionality
     detailsToggle?.addEventListener('click', () => {
-      const isExpanded = fileDetails.style.display !== 'none';
-      fileDetails.style.display = isExpanded ? 'none' : 'block';
+      const isExpanded = !fileDetails.classList.contains('hidden');
+      if (isExpanded) {
+        fileDetails.classList.add('hidden');
+      } else {
+        fileDetails.classList.remove('hidden');
+      }
       detailsToggle.classList.toggle('expanded');
       detailsToggle.innerHTML = isExpanded ?
         '<span class="toggle-icon">▼</span> Show Details' :
@@ -860,7 +904,6 @@
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       dropZone.classList.add('dragover');
-      updateStatus('uploading', 'File detected. Release to upload.');
     });
 
     dropZone.addEventListener('dragleave', () => {
@@ -925,28 +968,26 @@
       dropZone.classList.add('has-file');
       fileDisplay.style.display = 'block';  // Explicitly show the file display
       fileDisplay.classList.add('show');
-      processBtn.disabled = false;
+      processBtn.classList.remove('hidden');  // Show the process button
     }
 
-    // Remove file with confirmation
+    // Remove file
     removeBtn.addEventListener('click', () => {
-      if (confirm('Remove this file and start over?')) {
-        selectedFile = null;
-        fileDisplay.classList.remove('show');
-        fileDisplay.style.display = 'none';
-        dropZone.classList.remove('has-file');
-        dropZone.style.display = 'block';  // Show drop zone again
-        processBtn.disabled = true;
-        fileInput.value = '';  // Clear the file input so the same file can be selected again
-        updateStatus('ready', 'Waiting for video upload');
+      selectedFile = null;
+      fileDisplay.classList.remove('show');
+      fileDisplay.style.display = 'none';
+      dropZone.classList.remove('has-file');
+      dropZone.style.display = 'block';  // Show drop zone again
+      processBtn.classList.add('hidden');  // Hide the process button
+      fileInput.value = '';  // Clear the file input so the same file can be selected again
+      updateStatus('ready', 'Waiting for video upload');
 
-        // Reset file details
-        document.getElementById('fileName').textContent = '';
-        document.getElementById('fileSize').textContent = '';
-        document.getElementById('fileDuration').textContent = '--:--';
-        document.getElementById('fileResolution').textContent = '----x----';
-        document.getElementById('fileFrameRate').textContent = '-- fps';
-      }
+      // Reset file details
+      document.getElementById('fileName').textContent = '';
+      document.getElementById('fileSize').textContent = '';
+      document.getElementById('fileDuration').textContent = '--:--';
+      document.getElementById('fileResolution').textContent = '----x----';
+      document.getElementById('fileFrameRate').textContent = '-- fps';
     });
 
     // Process video
@@ -980,8 +1021,9 @@
 
       updateStatus('processing', 'Starting pose detection pipeline', 0);
 
+      document.getElementById('processingAnimation').classList.remove('hidden');
       document.getElementById('processingAnimation').classList.add('show');
-      processBtn.disabled = true;
+      processBtn.classList.add('hidden');  // Hide button during processing
 
       // Process with actual API
       await processVideo();
@@ -995,19 +1037,13 @@
       if (!selectedFile) return;
 
       const steps = ['step1', 'step2', 'step3', 'step4', 'step5'];
-      const spinner = document.getElementById('spinner');
-      const spinChars = ['|', '/', '-', '\\'];
-      let spinIndex = 0;
+      let processingComplete = false;
 
       // Initialize frame counter (will be updated from backend)
       let totalFrames = '?';
       let currentFrame = '0';
 
-      // Animate spinner
-      const spinInterval = setInterval(() => {
-        spinner.textContent = spinChars[spinIndex];
-        spinIndex = (spinIndex + 1) % spinChars.length;
-      }, 100);
+      // Spinner animation removed (UI component was removed)
 
       try {
         // Step 1: Upload video
@@ -1033,6 +1069,21 @@
         const uploadData = await uploadResponse.json();
         currentJobId = uploadData.job_id;
 
+        // Set up cancellation on window close
+        const handleBeforeUnload = (e) => {
+          if (currentJobId && !processingComplete) {
+            // Cancel the job using sendBeacon for reliability
+            const cancelUrl = `${window.API_URL}/api/cancel/${currentJobId}`;
+            navigator.sendBeacon(cancelUrl);
+
+            // Optional: Show warning to user (most browsers ignore custom messages now)
+            e.preventDefault();
+            e.returnValue = '';
+          }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
         updateStatusStep('step1', true, '[✓] Upload complete');
         updateStatus('processing', 'Extracting frames...', 25);
 
@@ -1047,6 +1098,15 @@
             const progress = status.progress || 0;
             updateStatus('processing', `Processing frame ${status.current_frame || '?'}/${status.total_frames || '?'}`, progress);
 
+            // Update the progress bar display
+            const filled = Math.floor((progress / 100) * 50);
+            const empty = 50 - filled;
+            const bar = '[' + '█'.repeat(filled) + '░'.repeat(empty) + ']';
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            if (progressBar) progressBar.textContent = bar;
+            if (progressPercent) progressPercent.textContent = `${Math.round(progress)}%`;
+
             // Update steps based on progress
             if (progress > 24 && lastStep < 2) {
               updateStatusStep('step2', true, '[✓] Frames extracted');
@@ -1060,6 +1120,11 @@
               updateStatusStep('step4', true, '[✓] Overlay generated');
               lastStep = 4;
             }
+            if (progress > 90 && lastStep < 5) {
+              updateStatusStep('step5', true, '[✓] Finalizing output');
+              updateStatus('processing', 'Finalizing output...', 95);
+              lastStep = 5;
+            }
 
             // Update frame counter if available
             if (status.current_frame && status.total_frames) {
@@ -1069,25 +1134,32 @@
             }
           } else if (status.status === 'completed') {
             // All steps complete
+            processingComplete = true;
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+
             updateStatusStep('step5', true, '[✓] Processing complete');
             updateStatus('success', 'Processing complete!', 100);
 
             // Show results
-            clearInterval(spinInterval);
             showResults(status);
             break;
           } else if (status.status === 'failed') {
             updateStatus('error', status.error || 'Processing failed');
             throw new Error('Processing failed: ' + (status.error || 'Unknown error'));
+          } else if (status.status === 'cancelled') {
+            updateStatus('error', 'Processing cancelled');
+            throw new Error('Processing cancelled by user');
           }
 
           // Wait before next poll
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       } catch (error) {
-        clearInterval(spinInterval);
+        processingComplete = true;
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+
         updateStatus('error', error.message);
-        processBtn.disabled = false;
+        processBtn.classList.remove('hidden');  // Show button again on error
 
         // Mark failed step
         steps.forEach(stepId => {
@@ -1114,13 +1186,7 @@
       const totalFrames = Math.floor(Math.random() * 200 + 300);
       console.log(`Total frames: ${totalFrames}`);
 
-      // ASCII spinner animation
-      const spinnerChars = ['|', '/', '-', '\\'];
-      let spinIndex = 0;
-      const spinInterval = setInterval(() => {
-        document.getElementById('spinner').textContent = spinnerChars[spinIndex % 4];
-        spinIndex++;
-      }, 200);
+      // Spinner animation removed (UI component was removed)
 
       let progress = 0;
       for (let i = 0; i < steps.length; i++) {
@@ -1148,13 +1214,21 @@
         addOutputLine(`[OK] Step ${i + 1}/${steps.length} complete`, 'success');
       }
 
-      clearInterval(spinInterval);
       showResults();
     }
 
 
     // Show results
     function showResults(status) {
+      // Hide elements that are no longer needed
+      const systemInfo = document.getElementById('systemInfo');
+      const fileDisplay = document.getElementById('fileDisplay');
+      const processingAnimation = document.getElementById('processingAnimation');
+
+      if (systemInfo) systemInfo.style.display = 'none';
+      if (fileDisplay) fileDisplay.style.display = 'none';
+      if (processingAnimation) processingAnimation.style.display = 'none';
+
       // Use actual results from API or fallback to estimates
       const totalFramesCount = status?.total_frames || totalFrames;
       const accuracy = status?.accuracy || (90 + Math.random() * 8).toFixed(1);
@@ -1176,13 +1250,8 @@
         const videoUrl = `${window.API_URL}/api/download/${currentJobId}/video`;
         videoPlayer.src = videoUrl;
 
-        // Create poster frame from first frame
-        videoPlayer.addEventListener('loadedmetadata', () => {
-          videoPlayer.currentTime = 0.1;
-        });
-
-        videoPlayer.addEventListener('seeked', () => {
-          // Auto-play after loading
+        // Ensure video plays automatically
+        videoPlayer.addEventListener('loadeddata', () => {
           videoPlayer.play().catch(err => {
             console.log('Auto-play prevented:', err);
           });
