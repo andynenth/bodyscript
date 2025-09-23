@@ -51,7 +51,7 @@ const Config = {
    * Wake-up message configuration for better UX
    */
   wakeUpMessage: {
-    enabled: true,
+    enabled: !window.location.hostname.includes('localhost'),  // Disable for localhost
     timeout: 65000,  // 65 seconds
     message: '⏳ Waking up server (free tier may take 30-60 seconds)...',
     successMessage: '✅ API Connected and ready',
