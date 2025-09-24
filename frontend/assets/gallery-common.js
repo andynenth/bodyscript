@@ -492,7 +492,7 @@ function initializeTouchSupport() {
           video.style.display = 'block';
           video.play().catch(() => {});
         }, 500);
-      });
+      }, { passive: true });
 
       card.addEventListener('touchend', () => {
         clearTimeout(touchTimer);
@@ -501,7 +501,7 @@ function initializeTouchSupport() {
         video.currentTime = 0;
         video.style.display = 'none';
         thumbnail.style.display = 'block';
-      });
+      }, { passive: true });
     });
   }
 }
