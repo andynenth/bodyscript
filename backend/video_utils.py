@@ -5,6 +5,7 @@ Video processing utilities for thumbnail and preview generation
 import subprocess
 import cv2
 import json
+import numpy as np  # Fixed: Added missing numpy import
 from pathlib import Path
 from typing import Tuple, Dict, Optional
 
@@ -24,6 +25,7 @@ def generate_thumbnail(video_path: str, output_path: str,
     Returns:
         True if successful
     """
+    cap = None
     try:
         cap = cv2.VideoCapture(video_path)
 
@@ -56,16 +58,18 @@ def generate_thumbnail(video_path: str, output_path: str,
             # Save thumbnail
             cv2.imwrite(output_path, canvas, [cv2.IMWRITE_JPEG_QUALITY, 85])
 
-            cap.release()
             print(f"Thumbnail generated: {output_path}")
             return True
 
-        cap.release()
         return False
 
     except Exception as e:
         print(f"Thumbnail generation failed: {e}")
         return False
+    finally:
+        # Always release the capture
+        if cap and cap.isOpened():
+            cap.release()
 
 
 def generate_preview(video_path: str, output_path: str,

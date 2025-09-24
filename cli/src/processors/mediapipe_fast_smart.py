@@ -208,11 +208,33 @@ class MediaPipeFastSmart:
 
         return best_result, best_strategy, best_score
 
+    def close(self):
+        """Cleanup MediaPipe resources to prevent memory leaks"""
+        if hasattr(self, 'pose') and self.pose:
+            self.pose.close()
+            self.pose = None
+
+    def __del__(self):
+        """Destructor to ensure cleanup on object deletion"""
+        self.close()
+
+    def __enter__(self):
+        """Context manager entry"""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - ensure cleanup"""
+        self.close()
+        return False
+
     def process_video_fast(self, frames_dir, output_csv, max_frames=None, progress_callback=None):
         """Fast video processing with smart strategy selection"""
 
         frames_dir = Path(frames_dir)
+        # Support both PNG and JPG frames
         frame_files = sorted(frames_dir.glob("frame_*.png"))
+        if not frame_files:
+            frame_files = sorted(frames_dir.glob("frame_*.jpg"))
 
         if max_frames:
             frame_files = frame_files[:max_frames]
@@ -225,6 +247,11 @@ class MediaPipeFastSmart:
         start_time = time.time()
         all_results = []
         prev_quality = None
+
+        # Open CSV file for incremental writing to reduce memory
+        csv_file = open(output_csv, 'w')
+        csv_writer = None
+        header_written = False
 
         for idx, frame_path in enumerate(frame_files):
             frame_id = int(frame_path.stem.split('_')[1])

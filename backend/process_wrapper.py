@@ -18,6 +18,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../c
 
 from src.processors.mediapipe_fast_smart import MediaPipeFastSmart
 from src.video.frame_extractor import extract_frames
+
+# Batch processing configuration
+FRAME_BATCH_SIZE = 30  # Process frames in batches to reduce memory
 from src.video.skeleton_overlay import load_pose_data, draw_skeleton_on_frame
 import cv2
 import pandas as pd
@@ -67,14 +70,33 @@ class WebVideoProcessor:
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Failed to trim video: {e.stderr}")
 
+    def extract_frames_batch(self, video_path: str, output_dir: str,
+                            start_frame: int, end_frame: int, interval: int = 3) -> int:
+        """
+        Extract a batch of frames from video.
+        Returns number of frames extracted.
+        """
+        from src.video.frame_extractor import extract_frames
+
+        frames_extracted, _ = extract_frames(
+            video_path,
+            output_dir=output_dir,
+            start_frame=start_frame,
+            end_frame=end_frame,
+            interval=interval,
+            format='jpg',  # Use JPEG for less memory
+            quality=85
+        )
+        return frames_extracted
+
     def reduce_resolution_if_needed(self, video_path: str, max_width: int = 720) -> bool:
         """Reduce video resolution if it's too large."""
+        cap = None
         try:
             # Get video dimensions
             cap = cv2.VideoCapture(video_path)
             width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            cap.release()
 
             if width > max_width:
                 # Calculate new dimensions maintaining aspect ratio
@@ -104,6 +126,10 @@ class WebVideoProcessor:
         except Exception as e:
             print(f"Warning: Could not reduce resolution: {e}")
             return False
+        finally:
+            # Always release the capture
+            if cap and cap.isOpened():
+                cap.release()
 
     def process_video(self,
                      input_video_path: str,
@@ -134,6 +160,10 @@ class WebVideoProcessor:
             trimmed_video = str(job_dir / "trimmed.mp4")
             trim_info = self.trim_video(input_video_path, trimmed_video)
 
+            # Delete original to save memory
+            if os.path.exists(input_video_path) and input_video_path != trimmed_video:
+                os.remove(input_video_path)
+
             if progress_callback:
                 progress_callback(10, "Video trimmed successfully")
 
@@ -142,6 +172,10 @@ class WebVideoProcessor:
                 progress_callback(12, "Checking video resolution...")
 
             was_resized = self.reduce_resolution_if_needed(trimmed_video)
+
+            # Force garbage collection after video operations
+            import gc
+            gc.collect()
 
             if progress_callback:
                 progress_callback(15, "Starting frame extraction...")
@@ -154,8 +188,9 @@ class WebVideoProcessor:
             frames_extracted, _ = extract_frames(
                 trimmed_video,
                 output_dir=frames_dir,
-                interval=1,  # Every frame
-                format='png'
+                interval=3,  # Reduced from 1 to 3 - extract every 3rd frame to save memory
+                format='jpg',  # Changed from PNG to JPEG - ~10x smaller
+                quality=85  # Good quality/size balance
             )
 
             # Step 4: Process with MediaPipe
@@ -179,6 +214,9 @@ class WebVideoProcessor:
                 max_frames=None,  # Process all frames
                 progress_callback=mediapipe_progress
             )
+
+            # Clean up MediaPipe resources to prevent memory leak
+            processor.close()
 
             # Calculate statistics
             avg_quality = results_df['visibility'].mean() if not results_df.empty else 0
@@ -243,6 +281,10 @@ class WebVideoProcessor:
             # Step 8: Clean up frames to save space
             shutil.rmtree(frames_dir, ignore_errors=True)
 
+            # Force garbage collection after major operations
+            import gc
+            gc.collect()
+
             if progress_callback:
                 progress_callback(100, "Processing complete!")
 
@@ -305,11 +347,19 @@ class WebVideoProcessor:
             print(f"Skeleton overlay stdout: {result.stdout}")
             raise RuntimeError(f"Skeleton overlay failed: {result.stderr}")
 
+    def cleanup_processor(self):
+        """Force cleanup of any processor resources and memory"""
+        import gc
+        # Force garbage collection to release memory
+        gc.collect()
+
     def cleanup_job(self, job_id: str):
         """Clean up all files for a job."""
         job_dir = self.temp_dir / job_id
         if job_dir.exists():
             shutil.rmtree(job_dir, ignore_errors=True)
+        # Also cleanup processor resources
+        self.cleanup_processor()
 
 
 # Quick test if run directly

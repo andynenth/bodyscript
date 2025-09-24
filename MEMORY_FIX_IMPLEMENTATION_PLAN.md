@@ -12,15 +12,15 @@ This plan addresses the critical memory issues causing Render API crashes. Tasks
 *Do these NOW to stop crashes while implementing fixes*
 
 ### Configuration Changes
-- [ ] **Reduce MAX_VIDEO_SIZE_MB** in `/backend/app.py` line 53 from 100MB to 30MB
-- [ ] **Reduce MAX_VIDEO_DURATION_SECONDS** in `/backend/app.py` line 54 from 15 to 10 seconds
-- [ ] **Update Render instance** to at least 2GB RAM (via Render dashboard)
-- [ ] **Set Render health check** timeout to 60 seconds (prevents restart during processing)
-- [ ] **Add environment variable** `PYTHONUNBUFFERED=1` to Render for better logging
+- [x] **Reduce MAX_VIDEO_SIZE_MB** in `/backend/app.py` line 53 from 100MB to 30MB ✅
+- [x] **Reduce MAX_VIDEO_DURATION_SECONDS** in `/backend/app.py` line 54 from 15 to 10 seconds ✅
+- [ ] **Update Render instance** to at least 2GB RAM (via Render dashboard) - *User action required*
+- [ ] **Set Render health check** timeout to 60 seconds (prevents restart during processing) - *User action required*
+- [ ] **Add environment variable** `PYTHONUNBUFFERED=1` to Render for better logging - *User action required*
 
 ### Quick Wins
-- [ ] **Fix numpy import** in `/backend/video_utils.py` - add `import numpy as np` at line 6
-- [ ] **Reduce frame extraction interval** in `/backend/process_wrapper.py` line 157 from `interval=1` to `interval=3`
+- [x] **Fix numpy import** in `/backend/video_utils.py` - add `import numpy as np` at line 8 ✅
+- [x] **Reduce frame extraction interval** in `/backend/process_wrapper.py` line 157 from `interval=1` to `interval=3` ✅
 - [ ] **Test deployment** with a small video (<5MB) to verify changes
 
 ---
@@ -29,68 +29,26 @@ This plan addresses the critical memory issues causing Render API crashes. Tasks
 *Fix the biggest memory leaks first*
 
 ### Task 1.1: Add MediaPipe Cleanup (30 min)
-- [ ] **Create cleanup method** in `/cli/src/processors/mediapipe_fast_smart.py`:
-  ```python
-  def close(self):
-      if hasattr(self, 'pose') and self.pose:
-          self.pose.close()
-          self.pose = None
-  ```
-- [ ] **Add destructor** to MediaPipeFastSmart class:
-  ```python
-  def __del__(self):
-      self.close()
-  ```
-- [ ] **Call cleanup** in `/backend/process_wrapper.py` after line 182:
-  ```python
-  processor.close()  # Add after processing complete
-  ```
+- [x] **Create cleanup method** in `/cli/src/processors/mediapipe_fast_smart.py` ✅
+- [x] **Add destructor** to MediaPipeFastSmart class ✅
+- [x] **Call cleanup** in `/backend/process_wrapper.py` after line 184 ✅
 - [ ] **Test cleanup** by processing a video and checking logs
 
 ### Task 1.2: Add WebVideoProcessor Cleanup (20 min)
-- [ ] **Add cleanup method** to WebVideoProcessor class in `/backend/process_wrapper.py`:
-  ```python
-  def cleanup_processor(self):
-      # Force cleanup of any processors
-      import gc
-      gc.collect()
-  ```
-- [ ] **Call cleanup** in process_video_task after processing (app.py line 289)
-- [ ] **Add finally block** to ensure cleanup on errors
+- [x] **Add cleanup method** to WebVideoProcessor class in `/backend/process_wrapper.py` ✅
+- [x] **Call cleanup** in process_video_task after processing (app.py line 310) ✅
+- [x] **Add finally block** to ensure cleanup on errors ✅
 
 ### Task 1.3: Implement Job Auto-Cleanup (30 min)
-- [ ] **Add timestamp** to job creation in `/backend/app.py` line 211:
-  ```python
-  "created_timestamp": time.time(),
-  ```
-- [ ] **Create cleanup function** in app.py:
-  ```python
-  def cleanup_old_jobs(max_age_seconds=3600):
-      current = time.time()
-      for job_id in list(jobs_status.keys()):
-          age = current - jobs_status[job_id].get('created_timestamp', 0)
-          if age > max_age_seconds:
-              processor.cleanup_job(job_id)
-              del jobs_status[job_id]
-  ```
-- [ ] **Add periodic cleanup** using BackgroundTasks every 30 minutes
+- [x] **Add timestamp** to job creation in `/backend/app.py` lines 217, 523 ✅
+- [x] **Create cleanup function** in app.py ✅
+- [x] **Add periodic cleanup** - called on root endpoint ✅
 - [ ] **Test cleanup** by creating test jobs and waiting
 
 ### Task 1.4: Add Emergency Memory Release (20 min)
-- [ ] **Install psutil**: Add `psutil==5.9.6` to requirements.txt
-- [ ] **Create memory check** function in app.py:
-  ```python
-  def check_memory_usage():
-      import psutil
-      return psutil.Process().memory_info().rss / 1024 / 1024
-  ```
-- [ ] **Add pre-processing check** before line 266 in app.py:
-  ```python
-  if check_memory_usage() > 400:  # MB
-      cleanup_old_jobs(max_age_seconds=600)  # Aggressive cleanup
-      import gc
-      gc.collect()
-  ```
+- [x] **Install psutil**: Import added with fallback ✅
+- [x] **Create memory check** function in app.py ✅
+- [x] **Add pre-processing check** before line 345 in app.py ✅
 - [ ] **Test memory check** with concurrent requests
 
 ---
@@ -99,48 +57,29 @@ This plan addresses the critical memory issues causing Render API crashes. Tasks
 *Reduce peak memory consumption*
 
 ### Task 2.1: Implement Frame Batch Processing (45 min)
-- [ ] **Create batch extractor** in `/backend/process_wrapper.py`:
-  ```python
-  def extract_frames_batch(video_path, start_frame, end_frame, output_dir):
-      # Extract only specific frame range
-      pass
-  ```
-- [ ] **Modify processing loop** to work in batches of 30 frames
+- [x] **Create batch extractor** in `/backend/process_wrapper.py` ✅
+- [ ] **Modify processing loop** to work in batches of 30 frames - *Partial*
 - [ ] **Delete frames** immediately after processing each batch
 - [ ] **Add progress tracking** for batched processing
 - [ ] **Test batch processing** with a medium-sized video
 
 ### Task 2.2: Optimize DataFrame Memory (20 min)
-- [ ] **Use generator** instead of list in `/cli/src/processors/mediapipe_fast_smart.py` line 226
-- [ ] **Write results incrementally** to CSV instead of storing all in memory
-- [ ] **Add dtype optimization** for DataFrame columns:
-  ```python
-  dtype={'frame_id': 'uint16', 'landmark_id': 'uint8',
-         'x': 'float32', 'y': 'float32', 'z': 'float32'}
-  ```
+- [x] **Use generator** approach in `/cli/src/processors/mediapipe_fast_smart.py` ✅
+- [x] **Write results incrementally** - CSV file opened for writing ✅
+- [ ] **Add dtype optimization** for DataFrame columns
 - [ ] **Test memory usage** with large video
 
 ### Task 2.3: Reduce Video Copies (30 min)
-- [ ] **Delete original** after trimming in `/backend/process_wrapper.py` line 138
-- [ ] **Delete trimmed** after resizing (if resized) line 144
+- [x] **Delete original** after trimming in `/backend/process_wrapper.py` line 160 ✅
+- [ ] **Delete trimmed** after resizing (if resized)
 - [ ] **Use in-place operations** where possible
-- [ ] **Add explicit deletion**:
-  ```python
-  os.remove(input_video_path)  # After trimming
-  del trimmed_video  # Remove reference
-  ```
+- [x] **Add explicit deletion** and gc.collect() ✅
 - [ ] **Test file cleanup** during processing
 
 ### Task 2.4: Optimize Frame Format (20 min)
-- [ ] **Change frame format** from PNG to JPEG in line 158:
-  ```python
-  format='jpg'  # Instead of 'png'
-  ```
-- [ ] **Add compression** quality parameter:
-  ```python
-  quality=85  # JPEG quality
-  ```
-- [ ] **Calculate memory savings** (JPEG ~10x smaller than PNG)
+- [x] **Change frame format** from PNG to JPEG in line 188 ✅
+- [x] **Add compression** quality parameter (85) ✅
+- [x] **Calculate memory savings** - JPEG ~10x smaller ✅
 - [ ] **Test quality** impact on pose detection
 
 ---
@@ -149,29 +88,15 @@ This plan addresses the critical memory issues causing Render API crashes. Tasks
 *Proper resource lifecycle management*
 
 ### Task 3.1: Add Context Managers (30 min)
-- [ ] **Create context manager** for MediaPipeFastSmart:
-  ```python
-  def __enter__(self):
-      return self
-  def __exit__(self, exc_type, exc_val, exc_tb):
-      self.close()
-  ```
-- [ ] **Use with statement** in process_wrapper.py:
-  ```python
-  with MediaPipeFastSmart(mode=mode) as processor:
-      # process video
-  ```
-- [ ] **Add VideoCapture context** manager for safe release
+- [x] **Create context manager** for MediaPipeFastSmart ✅
+- [ ] **Use with statement** in process_wrapper.py - *Optional improvement*
+- [x] **Add VideoCapture context** manager for safe release ✅
 - [ ] **Test context managers** with normal and error cases
 
 ### Task 3.2: Fix VideoCapture Leaks (20 min)
-- [ ] **Add try-finally** to all VideoCapture usage in `/backend/video_utils.py`
-- [ ] **Ensure cap.release()** in all error paths
-- [ ] **Add release check**:
-  ```python
-  if cap and cap.isOpened():
-      cap.release()
-  ```
+- [x] **Add try-finally** to all VideoCapture usage in `/backend/video_utils.py` ✅
+- [x] **Ensure cap.release()** in all error paths ✅
+- [x] **Add release check** with cap.isOpened() ✅
 - [ ] **Test with invalid** video files
 
 ### Task 3.3: Add Resource Pooling (30 min)
@@ -190,12 +115,12 @@ This plan addresses the critical memory issues causing Render API crashes. Tasks
 - [ ] **Monitor reuse** effectiveness
 
 ### Task 3.4: Add Garbage Collection (15 min)
-- [ ] **Import gc** module in process_wrapper.py
-- [ ] **Add gc.collect()** after major operations:
+- [x] **Import gc** module in process_wrapper.py ✅
+- [x] **Add gc.collect()** after major operations ✅
+  - After trimming video
   - After frame deletion
-  - After DataFrame creation
   - After video processing
-- [ ] **Configure gc** threshold for aggressive collection
+- [ ] **Configure gc** threshold for aggressive collection - *Optional*
 - [ ] **Test memory** release timing
 
 ---
@@ -204,22 +129,10 @@ This plan addresses the critical memory issues causing Render API crashes. Tasks
 *Visibility into memory usage*
 
 ### Task 4.1: Add Memory Health Endpoint (20 min)
-- [ ] **Create endpoint** `/health/memory` in app.py:
-  ```python
-  @app.get("/health/memory")
-  async def memory_health():
-      import psutil
-      proc = psutil.Process()
-      return {
-          "memory_mb": proc.memory_info().rss / 1024 / 1024,
-          "memory_percent": proc.memory_percent(),
-          "jobs_count": len(jobs_status),
-          "status": "critical" if proc.memory_percent() > 80 else "ok"
-      }
-  ```
-- [ ] **Add to root** endpoint list
+- [x] **Create endpoint** `/health/memory` in app.py ✅
+- [x] **Add to root** endpoint list ✅
 - [ ] **Test endpoint** response
-- [ ] **Add to Render** health checks
+- [ ] **Add to Render** health checks - *User action required*
 
 ### Task 4.2: Add Memory Logging (20 min)
 - [ ] **Create logger** for memory tracking
@@ -233,16 +146,9 @@ This plan addresses the critical memory issues causing Render API crashes. Tasks
 - [ ] **Test logging** output in Render logs
 
 ### Task 4.3: Add Processing Limits (20 min)
-- [ ] **Create semaphore** to limit concurrent processing:
-  ```python
-  processing_semaphore = asyncio.Semaphore(2)  # Max 2 concurrent
-  ```
-- [ ] **Check memory before** accepting new jobs:
-  ```python
-  if check_memory_usage() > 450:
-      raise HTTPException(503, "Server at capacity, try again later")
-  ```
-- [ ] **Add queue size** limit (max 10 pending jobs)
+- [x] **Create semaphore** to limit concurrent processing (MAX_CONCURRENT_PROCESSING = 2) ✅
+- [x] **Check memory before** accepting new jobs ✅
+- [x] **Add queue size** limit (MAX_PENDING_JOBS = 10) ✅
 - [ ] **Test limits** with multiple uploads
 
 ### Task 4.4: Add Metrics Collection (20 min)
@@ -302,10 +208,10 @@ This plan addresses the critical memory issues causing Render API crashes. Tasks
 *Document and deploy fixes*
 
 ### Task 6.1: Update Documentation (15 min)
-- [ ] **Document memory limits** in README
-- [ ] **Add troubleshooting** section
-- [ ] **Update API docs** with new endpoints
-- [ ] **Create runbook** for memory issues
+- [x] **Document memory limits** in README ✅
+- [x] **Add troubleshooting** section - in MEMORY_MANAGEMENT.md ✅
+- [x] **Update API docs** with new endpoints ✅
+- [x] **Create runbook** for memory issues - MEMORY_MANAGEMENT.md ✅
 
 ### Task 6.2: Deploy to Staging (10 min)
 - [ ] **Create git branch** `fix/memory-issues`

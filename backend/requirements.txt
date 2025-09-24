@@ -8,6 +8,9 @@ aiofiles==23.2.1
 boto3==1.29.7
 python-dotenv==1.0.0
 
+# Monitoring dependencies
+psutil==5.9.6  # For memory monitoring and management
+
 # Existing dependencies from base
 mediapipe==0.10.7
 opencv-python-headless==4.8.1.78  # Use headless for server deployment

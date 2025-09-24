@@ -18,11 +18,23 @@ from datetime import datetime
 from typing import Dict, Any
 import json
 
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+    print("Warning: psutil not installed. Memory monitoring disabled.")
+
 from process_wrapper import WebVideoProcessor
 from admin_routes import router as admin_router
 
 # Track startup time for uptime monitoring
 START_TIME = time.time()
+
+# Cleanup configuration
+JOB_MAX_AGE_SECONDS = 3600  # 1 hour - jobs older than this are auto-deleted
+CLEANUP_INTERVAL_SECONDS = 1800  # 30 minutes - how often to run cleanup
+last_cleanup_time = time.time()
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -50,13 +62,71 @@ app.include_router(admin_router)
 jobs_status: Dict[str, Any] = {}
 
 # Configuration
-MAX_VIDEO_SIZE_MB = 100
-MAX_VIDEO_DURATION_SECONDS = 15
+MAX_VIDEO_SIZE_MB = 30  # Reduced from 100MB to prevent memory issues
+MAX_VIDEO_DURATION_SECONDS = 10  # Reduced from 15 seconds to limit processing
 ALLOWED_EXTENSIONS = {'.mp4', '.avi', '.mov', '.mkv'}
+MAX_CONCURRENT_PROCESSING = 2  # Limit concurrent video processing
+MAX_PENDING_JOBS = 10  # Maximum jobs that can be queued
+
+# Track concurrent processing
+import asyncio
+processing_semaphore = asyncio.Semaphore(MAX_CONCURRENT_PROCESSING)
+
+
+def cleanup_old_jobs(max_age_seconds: int = JOB_MAX_AGE_SECONDS):
+    """
+    Clean up jobs older than max_age_seconds to prevent memory accumulation.
+    Returns the number of jobs cleaned up.
+    """
+    current_time = time.time()
+    cleaned_count = 0
+
+    for job_id in list(jobs_status.keys()):
+        job_age = current_time - jobs_status[job_id].get('created_timestamp', current_time)
+
+        # Clean up old completed, failed, or cancelled jobs
+        if job_age > max_age_seconds and jobs_status[job_id]["status"] in ["completed", "failed", "cancelled"]:
+            # Clean up files
+            processor.cleanup_job(job_id)
+            # Remove from status
+            del jobs_status[job_id]
+            cleaned_count += 1
+            print(f"Auto-cleaned old job: {job_id} (age: {job_age/60:.1f} minutes)")
+
+    return cleaned_count
+
+
+def check_memory_usage():
+    """
+    Check current memory usage in MB.
+    Returns 0 if psutil is not available.
+    """
+    if not PSUTIL_AVAILABLE:
+        return 0
+
+    try:
+        return psutil.Process().memory_info().rss / 1024 / 1024
+    except Exception as e:
+        print(f"Error checking memory: {e}")
+        return 0
+
+
+def periodic_cleanup():
+    """Run cleanup periodically - called on each request"""
+    global last_cleanup_time
+    current_time = time.time()
+
+    if current_time - last_cleanup_time > CLEANUP_INTERVAL_SECONDS:
+        cleaned = cleanup_old_jobs()
+        if cleaned > 0:
+            print(f"Periodic cleanup: removed {cleaned} old jobs")
+        last_cleanup_time = current_time
 
 
 @app.get("/")
 async def root():
+    # Run periodic cleanup on root endpoint access
+    periodic_cleanup()
     """Root endpoint - API information."""
     return {
         "name": "BodyScript Pose Detection API",
@@ -67,7 +137,8 @@ async def root():
             "status": "/api/status/{job_id}",
             "download": "/api/download/{job_id}/video",
             "download_csv": "/api/download/{job_id}/csv",
-            "health": "/health"
+            "health": "/health",
+            "memory_health": "/health/memory"
         }
     }
 
@@ -133,6 +204,52 @@ async def get_gallery():
     return {"videos": []}
 
 
+@app.get("/health/memory")
+async def memory_health():
+    """Get detailed memory health status."""
+    if not PSUTIL_AVAILABLE:
+        return {
+            "status": "unknown",
+            "message": "psutil not installed - memory monitoring disabled"
+        }
+
+    try:
+        import psutil
+        proc = psutil.Process()
+        memory_info = proc.memory_info()
+        memory_mb = memory_info.rss / 1024 / 1024
+        memory_percent = proc.memory_percent()
+
+        # Determine status based on memory usage
+        if memory_percent > 80:
+            status = "critical"
+        elif memory_percent > 60:
+            status = "warning"
+        else:
+            status = "healthy"
+
+        return {
+            "status": status,
+            "memory_mb": round(memory_mb, 1),
+            "memory_percent": round(memory_percent, 1),
+            "jobs_count": len(jobs_status),
+            "jobs_pending": len([j for j in jobs_status.values() if j["status"] == "pending"]),
+            "jobs_processing": len([j for j in jobs_status.values() if j["status"] == "processing"]),
+            "jobs_completed": len([j for j in jobs_status.values() if j["status"] == "completed"]),
+            "timestamp": datetime.now().isoformat(),
+            "recommendations": {
+                "cleanup_threshold": "400MB",
+                "max_concurrent": 2,
+                "auto_cleanup_age": f"{JOB_MAX_AGE_SECONDS/60:.0f} minutes"
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
 @app.get("/health")
 async def health_check():
     """Enhanced health check with cold start detection and uptime."""
@@ -177,6 +294,28 @@ async def upload_video(
     Returns:
         job_id and initial status
     """
+    # Check if we're at capacity
+    pending_jobs = [j for j in jobs_status.values() if j["status"] == "pending"]
+    processing_jobs = [j for j in jobs_status.values() if j["status"] == "processing"]
+
+    if len(pending_jobs) >= MAX_PENDING_JOBS:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Server at capacity. {len(pending_jobs)} jobs already queued. Please try again later."
+        )
+
+    # Check memory before accepting new job
+    memory_mb = check_memory_usage()
+    if memory_mb > 450:
+        # Try cleanup first
+        cleanup_old_jobs(max_age_seconds=300)  # 5 minutes
+        memory_mb = check_memory_usage()
+        if memory_mb > 450:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Server memory limit reached ({memory_mb:.0f}MB). Please try again later."
+            )
+
     # Validate file extension
     file_ext = Path(file.filename).suffix.lower()
     if file_ext not in ALLOWED_EXTENSIONS:
@@ -214,6 +353,7 @@ async def upload_video(
             "progress": 0,
             "message": "Video uploaded successfully",
             "created_at": datetime.now().isoformat(),
+            "created_timestamp": time.time(),  # Add timestamp for auto-cleanup
             "filename": file.filename,
             "file_size_mb": round(file_size_mb, 2)
         }
@@ -258,6 +398,25 @@ def process_video_task(job_id: str, video_path: str):
             jobs_status[job_id]["total_frames"] = int(frame_match.group(2))
 
     try:
+        # Check memory before processing - clean up if needed
+        memory_mb = check_memory_usage()
+        if memory_mb > 400:  # Emergency cleanup if over 400MB
+            print(f"High memory usage detected: {memory_mb:.1f}MB - running emergency cleanup")
+            cleanup_old_jobs(max_age_seconds=600)  # More aggressive cleanup - 10 minutes
+            import gc
+            gc.collect()
+
+            # Check again after cleanup
+            memory_mb = check_memory_usage()
+            if memory_mb > 450:  # Still too high
+                jobs_status[job_id].update({
+                    "status": "failed",
+                    "message": "Server memory limit reached. Please try again later.",
+                    "error": f"Memory usage: {memory_mb:.1f}MB",
+                    "completed_at": datetime.now().isoformat()
+                })
+                return
+
         # Update status to processing
         jobs_status[job_id]["status"] = "processing"
         jobs_status[job_id]["started_at"] = datetime.now().isoformat()
@@ -305,6 +464,9 @@ def process_video_task(job_id: str, video_path: str):
                 "error": str(e),
                 "completed_at": datetime.now().isoformat()
             })
+    finally:
+        # Always cleanup processor resources after processing
+        processor.cleanup_processor()
 
 
 @app.get("/api/status/{job_id}")
@@ -433,6 +595,7 @@ async def process_local_video(
             "progress": 0,
             "message": "Local video loaded successfully",
             "created_at": datetime.now().isoformat(),
+            "created_timestamp": time.time(),  # Add timestamp for auto-cleanup
             "filename": video_path.name,
             "file_size_mb": round(file_size_mb, 2),
             "source": "local"

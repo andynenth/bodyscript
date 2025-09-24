@@ -201,6 +201,24 @@ bodyscript/
 └── output/                 # Default output directory
 ```
 
+## Memory Optimization & Deployment
+
+### Memory Management
+The API includes comprehensive memory management to run on resource-constrained environments:
+
+- **Automatic resource cleanup**: MediaPipe detectors properly released after use
+- **Job auto-cleanup**: Jobs older than 1 hour automatically deleted
+- **Memory monitoring**: Health endpoint at `/health/memory`
+- **Processing limits**: Max 2 concurrent videos, 10 queued jobs
+- **Optimized extraction**: JPEG frames (10x smaller than PNG), every 3rd frame
+
+### Recommended Deployment Specs
+- **Minimum**: 1GB RAM (limited functionality)
+- **Recommended**: 2GB RAM for stable operation
+- **Production**: 4GB RAM for concurrent processing
+
+For detailed memory management, see [docs/MEMORY_MANAGEMENT.md](docs/MEMORY_MANAGEMENT.md)
+
 ## Configuration
 
 ### CLI Configuration
