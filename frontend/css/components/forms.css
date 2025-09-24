@@ -50,6 +50,7 @@
 .drop-text {
   color: var(--text-primary);
   margin-top: 1rem;
+  margin-bottom: 1rem;
   font-size: 14px;
 }
 
@@ -69,7 +70,6 @@
   margin: 2rem auto;
   max-width: 600px;
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-secondary);
   border-radius: 4px;
   overflow: hidden;
   animation: slideIn 0.3s ease;
@@ -97,7 +97,8 @@
   align-items: center;
   padding: 1rem;
   background: transparent;
-  border-bottom: 1px solid var(--border-secondary);
+  border: 1px solid var(--border-secondary);
+  border-bottom: none;
 }
 
 .file-main-info {
@@ -121,6 +122,9 @@
 /* File Details (Expandable) */
 .file-details {
   background: transparent;
+  border: 1px solid var(--border-secondary);
+  border-top: none;
+  padding: 1rem;
   animation: expand 0.3s ease;
 }
 
@@ -210,6 +214,13 @@
   content: '[✓]';
   color: #27c93f;
   margin-right: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.info-item {
+  color: var(--text-secondary);
+  margin: 0.3rem 0;
+  font-size: 14px;
   font-family: 'JetBrains Mono', monospace;
 }
 

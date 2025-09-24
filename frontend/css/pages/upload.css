@@ -1,4 +1,8 @@
-/* Upload page specific styles */
+/**
+ * Upload Page Styles - BodyScript
+ * Page-specific styles for the video upload interface
+ * Includes processing animations, results display, and mobile optimizations
+ */
 
 /* Page-specific body padding override */
 body {
@@ -33,11 +37,6 @@ body {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
-}
-
-/* Hidden state utility */
-.hidden {
-  display: none !important;
 }
 
 /* ASCII spinner */
@@ -144,6 +143,15 @@ body {
   color: var(--text-terminal-green);
 }
 
+.result-summary {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.result-summary span {
+  color: var(--text-terminal-green);
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -204,9 +212,6 @@ body {
   transform: translateY(0);
 }
 
-.btn-icon {
-  flex-shrink: 0;
-}
 
 .download-btn {
   background: transparent;

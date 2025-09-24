@@ -120,8 +120,8 @@
   width: 100%;
   padding: 0.75rem 1rem;
   background: transparent;
-  border: none;
-  border-top: 1px solid var(--border-secondary);
+  border: 1px solid var(--border-secondary);
+  border-bottom: none;
   color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
@@ -143,7 +143,11 @@
   display: inline-block;
 }
 
-.details-toggle.active .toggle-icon {
+.details-toggle:not(.expanded) {
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.details-toggle.expanded .toggle-icon {
   transform: rotate(180deg);
 }
 
@@ -195,9 +199,6 @@
   display: inline-block;
 }
 
-.btn-icon {
-  flex-shrink: 0;
-}
 
 /* ===================================================================
    Button States
