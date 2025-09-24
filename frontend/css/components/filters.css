@@ -1,0 +1,224 @@
+/* =====================================================================
+   Filter Component Styles
+   Category filters, search filters, and active filter displays
+   ===================================================================== */
+
+/* =================================================================
+   Filter Container
+   ================================================================= */
+
+.filter-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.terminal-filters {
+  display: flex;
+  gap: 1rem;
+}
+
+/* =================================================================
+   Filter Buttons
+   ================================================================= */
+
+.filter-btn {
+  padding: 0.5rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  color: var(--text-secondary);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.filter-btn:hover {
+  background: var(--bg-card-dark);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+.filter-btn.active {
+  background: var(--color-success);
+  color: white;
+  border-color: var(--color-success);
+}
+
+/* Terminal-style filter buttons */
+.terminal-filter {
+  background: transparent;
+  border: 1px solid var(--border-secondary);
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.terminal-filter:hover {
+  background: rgba(39, 201, 63, 0.1);
+  border-color: var(--color-terminal-green);
+  color: var(--color-terminal-green);
+}
+
+.terminal-filter.active {
+  background: rgba(39, 201, 63, 0.2);
+  color: var(--color-terminal-green);
+  border-color: var(--color-terminal-green);
+  font-weight: 600;
+}
+
+/* =================================================================
+   Active Filter Display
+   ================================================================= */
+
+.active-filter {
+  background: var(--color-terminal-green);
+  color: #000;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-radius: var(--radius-md);
+  display: none;
+  align-items: center;
+  font-weight: 600;
+}
+
+.active-filter.show {
+  display: flex;
+}
+
+.clear-filter {
+  background: #000;
+  color: var(--color-terminal-green);
+  border: 1px solid #000;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  margin-left: 1rem;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.clear-filter:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* =================================================================
+   Terminal Navigation Bar
+   ================================================================= */
+
+.terminal-nav {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* =================================================================
+   Demo/Action Button
+   ================================================================= */
+
+.terminal-demo-btn {
+  background: rgba(39, 201, 63, 0.1);
+  color: var(--color-terminal-green);
+  border: 1px solid var(--color-terminal-green);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  font-family: var(--font-mono);
+}
+
+.terminal-demo-btn:hover {
+  background: rgba(39, 201, 63, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 201, 63, 0.3);
+}
+
+/* =================================================================
+   Responsive Adjustments
+   ================================================================= */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .filter-container {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.5rem;
+  }
+
+  .terminal-nav {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .terminal-nav {
+    gap: 0.75rem;
+    padding: 0.75rem;
+    position: relative;
+  }
+
+  .terminal-filters {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    position: relative;
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .terminal-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .terminal-filter {
+    flex-shrink: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .terminal-demo-btn {
+    align-self: center;
+    padding: 0.75rem 2rem;
+    font-size: 0.9rem;
+  }
+
+  .active-filter {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .clear-filter {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Extra small mobile */
+@media (max-width: 480px) {
+  .filter-btn,
+  .terminal-filter {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}

@@ -1,0 +1,120 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd backend && pip install -r requirements.txt
+
+    - name: Run quick tests
+      run: |
+        npm run lint
+        npm run test:unit
+        cd backend && python -m pytest tests/unit/ -v
+
+    - name: Build for staging
+      env:
+        NODE_ENV: staging
+      run: |
+        echo "VITE_API_URL=${{ secrets.STAGING_API_URL }}" > .env.staging
+        echo "VITE_ENVIRONMENT=staging" >> .env.staging
+        npm run build
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Deploy to S3 (Frontend)
+      run: |
+        aws s3 sync frontend/dist/ s3://${{ secrets.STAGING_S3_BUCKET }} --delete
+        aws cloudfront create-invalidation --distribution-id ${{ secrets.STAGING_CLOUDFRONT_ID }} --paths "/*"
+
+    - name: Deploy to ECS (Backend)
+      run: |
+        # Build Docker image
+        docker build -t bodyscript-api:staging -f backend/Dockerfile backend/
+
+        # Tag and push to ECR
+        docker tag bodyscript-api:staging ${{ secrets.ECR_REGISTRY }}/bodyscript-api:staging
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+        docker push ${{ secrets.ECR_REGISTRY }}/bodyscript-api:staging
+
+        # Update ECS service
+        aws ecs update-service --cluster bodyscript-staging --service bodyscript-api-staging --force-new-deployment
+
+    - name: Wait for deployment
+      run: |
+        echo "Waiting for ECS service to stabilize..."
+        aws ecs wait services-stable --cluster bodyscript-staging --services bodyscript-api-staging
+
+    - name: Run health checks
+      run: |
+        sleep 60  # Give services time to fully start
+
+        # Check frontend
+        if ! curl -f "${{ secrets.STAGING_URL }}" > /dev/null 2>&1; then
+          echo "Frontend health check failed"
+          exit 1
+        fi
+
+        # Check API
+        if ! curl -f "${{ secrets.STAGING_API_URL }}/health" > /dev/null 2>&1; then
+          echo "API health check failed"
+          exit 1
+        fi
+
+        echo "All health checks passed"
+
+    - name: Run smoke tests
+      run: npm run test:smoke -- --env=staging
+
+    - name: Notify deployment success
+      if: success()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_MESSAGE: '✅ Staging deployment completed successfully!'
+        SLACK_TITLE: 'BodyScript Staging Deployment'
+        SLACK_COLOR: 'good'
+
+    - name: Notify deployment failure
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_MESSAGE: '❌ Staging deployment failed!'
+        SLACK_TITLE: 'BodyScript Staging Deployment'
+        SLACK_COLOR: 'danger'

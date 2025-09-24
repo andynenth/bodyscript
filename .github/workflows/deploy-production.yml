@@ -1,0 +1,335 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  pre-deployment-checks:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check if staging is healthy
+      run: |
+        if ! curl -f "${{ secrets.STAGING_URL }}/health" > /dev/null 2>&1; then
+          echo "Staging environment is not healthy. Aborting production deployment."
+          exit 1
+        fi
+        echo "Staging environment is healthy"
+
+    - name: Validate version tag
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Invalid version tag format: $VERSION"
+          exit 1
+        fi
+        echo "Valid version tag: $VERSION"
+
+  comprehensive-tests:
+    name: Comprehensive Test Suite
+    runs-on: ubuntu-latest
+    needs: pre-deployment-checks
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bodyscript_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd backend && pip install -r requirements.txt
+
+    - name: Run comprehensive frontend tests
+      run: |
+        npm run lint
+        npm run type-check
+        npm run test:unit -- --coverage
+        npm run test:integration
+        npm run test:accessibility
+
+    - name: Run comprehensive backend tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bodyscript_test
+      run: |
+        cd backend
+        python -m pytest tests/ -v --cov=. --cov-report=xml --cov-fail-under=80
+
+    - name: Build application
+      run: npm run build:prod
+
+    - name: Run end-to-end tests
+      run: npm run test:e2e
+
+    - name: Run performance tests
+      run: npm run test:performance
+
+    - name: Security audit
+      run: |
+        npm audit --audit-level high
+        cd backend && safety check
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: comprehensive-tests
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd backend && pip install -r requirements.txt
+
+    - name: Build for production
+      env:
+        NODE_ENV: production
+      run: |
+        echo "VITE_API_URL=${{ secrets.PRODUCTION_API_URL }}" > .env.production
+        echo "VITE_ENVIRONMENT=production" >> .env.production
+        echo "VITE_SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env.production
+        npm run build:prod
+
+    - name: Generate build manifest
+      run: |
+        echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > build-info.txt
+        echo "GIT_COMMIT=${{ github.sha }}" >> build-info.txt
+        echo "GIT_BRANCH=${{ github.ref_name }}" >> build-info.txt
+        echo "WORKFLOW_RUN_ID=${{ github.run_id }}" >> build-info.txt
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Create deployment backup
+      run: |
+        # Backup current production deployment
+        BACKUP_NAME="production-backup-$(date +%Y%m%d-%H%M%S)"
+        aws s3 sync s3://${{ secrets.PRODUCTION_S3_BUCKET }} s3://${{ secrets.BACKUP_S3_BUCKET }}/$BACKUP_NAME/
+        echo "BACKUP_NAME=$BACKUP_NAME" >> $GITHUB_ENV
+
+    - name: Deploy frontend to S3
+      run: |
+        # Deploy to blue-green bucket first
+        aws s3 sync frontend/dist/ s3://${{ secrets.PRODUCTION_S3_BUCKET }}-staging --delete
+
+        # Test the staging bucket
+        sleep 30
+        if curl -f "https://${{ secrets.PRODUCTION_STAGING_URL }}" > /dev/null 2>&1; then
+          echo "Staging deployment successful, switching to production"
+          aws s3 sync s3://${{ secrets.PRODUCTION_S3_BUCKET }}-staging/ s3://${{ secrets.PRODUCTION_S3_BUCKET }} --delete
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.PRODUCTION_CLOUDFRONT_ID }} --paths "/*"
+        else
+          echo "Staging deployment failed"
+          exit 1
+        fi
+
+    - name: Deploy backend to ECS
+      run: |
+        # Build Docker image with multi-stage build
+        docker build -t bodyscript-api:${{ github.sha }} -f backend/Dockerfile.prod backend/
+
+        # Tag for ECR
+        docker tag bodyscript-api:${{ github.sha }} ${{ secrets.ECR_REGISTRY }}/bodyscript-api:${{ github.sha }}
+        docker tag bodyscript-api:${{ github.sha }} ${{ secrets.ECR_REGISTRY }}/bodyscript-api:latest
+
+        # Push to ECR
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+        docker push ${{ secrets.ECR_REGISTRY }}/bodyscript-api:${{ github.sha }}
+        docker push ${{ secrets.ECR_REGISTRY }}/bodyscript-api:latest
+
+        # Update task definition
+        aws ecs describe-task-definition --task-definition bodyscript-production \
+          --query taskDefinition > task-definition.json
+
+        # Update image in task definition
+        jq '.containerDefinitions[0].image = "${{ secrets.ECR_REGISTRY }}/bodyscript-api:${{ github.sha }}"' \
+          task-definition.json > new-task-definition.json
+
+        # Register new task definition
+        aws ecs register-task-definition --cli-input-json file://new-task-definition.json
+
+        # Update ECS service with blue-green deployment
+        aws ecs update-service --cluster bodyscript-production \
+          --service bodyscript-api-production \
+          --task-definition bodyscript-production \
+          --desired-count 2
+
+    - name: Wait for deployment stabilization
+      run: |
+        echo "Waiting for ECS service to stabilize..."
+        aws ecs wait services-stable --cluster bodyscript-production --services bodyscript-api-production --max-attempts 20
+
+    - name: Comprehensive health checks
+      run: |
+        sleep 60  # Allow full startup
+
+        # Frontend health check
+        if ! curl -f "${{ secrets.PRODUCTION_URL }}" > /dev/null 2>&1; then
+          echo "Frontend health check failed"
+          exit 1
+        fi
+
+        # API health check
+        if ! curl -f "${{ secrets.PRODUCTION_API_URL }}/health" > /dev/null 2>&1; then
+          echo "API health check failed"
+          exit 1
+        fi
+
+        # Database connectivity
+        if ! curl -f "${{ secrets.PRODUCTION_API_URL }}/health/database" > /dev/null 2>&1; then
+          echo "Database health check failed"
+          exit 1
+        fi
+
+        # MediaPipe processing
+        if ! curl -f "${{ secrets.PRODUCTION_API_URL }}/health/pose" > /dev/null 2>&1; then
+          echo "Pose processing health check failed"
+          exit 1
+        fi
+
+        # Performance check
+        RESPONSE_TIME=$(curl -o /dev/null -s -w '%{time_total}' "${{ secrets.PRODUCTION_URL }}")
+        if (( $(echo "$RESPONSE_TIME > 3.0" | bc -l) )); then
+          echo "Performance check failed: ${RESPONSE_TIME}s response time"
+          exit 1
+        fi
+
+        echo "All health checks passed"
+
+    - name: Run production smoke tests
+      run: npm run test:smoke -- --env=production
+
+    - name: Update deployment record
+      run: |
+        # Record successful deployment
+        echo "$(date -u +%Y-%m-%dT%H:%M:%SZ),${{ github.sha }},production,success" >> deployment-record.csv
+        aws s3 cp deployment-record.csv s3://${{ secrets.DEPLOYMENT_LOGS_BUCKET }}/
+
+    - name: Setup post-deployment monitoring
+      run: |
+        # Create CloudWatch alarms for monitoring
+        aws cloudwatch put-metric-alarm \
+          --alarm-name "BodyScript-Production-HighErrorRate" \
+          --alarm-description "High error rate after deployment" \
+          --metric-name "4XXError" \
+          --namespace "AWS/CloudFront" \
+          --statistic "Sum" \
+          --period 300 \
+          --threshold 10 \
+          --comparison-operator "GreaterThanThreshold" \
+          --evaluation-periods 2 \
+          --alarm-actions "arn:aws:sns:us-east-1:${{ secrets.AWS_ACCOUNT_ID }}:bodyscript-alerts"
+
+    - name: Notify deployment success
+      if: success()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_MESSAGE: |
+          🚀 Production deployment completed successfully!
+
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          **Backup:** ${{ env.BACKUP_NAME }}
+          **URL:** ${{ secrets.PRODUCTION_URL }}
+        SLACK_TITLE: 'BodyScript Production Deployment'
+        SLACK_COLOR: 'good'
+
+  rollback-on-failure:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: deploy-production
+
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Rollback deployment
+      run: |
+        # Restore from backup
+        LATEST_BACKUP=$(aws s3 ls s3://${{ secrets.BACKUP_S3_BUCKET }}/ | sort | tail -1 | awk '{print $4}')
+        aws s3 sync s3://${{ secrets.BACKUP_S3_BUCKET }}/$LATEST_BACKUP/ s3://${{ secrets.PRODUCTION_S3_BUCKET }} --delete
+        aws cloudfront create-invalidation --distribution-id ${{ secrets.PRODUCTION_CLOUDFRONT_ID }} --paths "/*"
+
+        # Rollback ECS service to previous task definition
+        PREVIOUS_TASK_DEF=$(aws ecs list-task-definitions --family-prefix bodyscript-production --status ACTIVE --sort DESC --max-items 2 --query 'taskDefinitionArns[1]' --output text)
+        aws ecs update-service --cluster bodyscript-production --service bodyscript-api-production --task-definition $PREVIOUS_TASK_DEF
+
+    - name: Notify rollback
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_MESSAGE: |
+          ⚠️ Production deployment failed and has been rolled back!
+
+          **Failed Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          **Action Required:** Review deployment logs and fix issues
+        SLACK_TITLE: 'BodyScript Production Rollback'
+        SLACK_COLOR: 'warning'

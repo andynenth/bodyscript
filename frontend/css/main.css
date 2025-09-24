@@ -10,9 +10,14 @@
  */
 
 /* ===================================================================
+   Configuration - Must be imported first
+   =================================================================== */
+@import url('config/variables.css');    /* Centralized CSS custom properties */
+@import url('config/breakpoints.css');  /* Responsive breakpoint definitions */
+
+/* ===================================================================
    Base Styles - Foundation
    =================================================================== */
-@import url('base/variables.css');    /* CSS custom properties */
 @import url('base/reset.css');        /* Browser reset & normalization */
 @import url('base/typography.css');   /* Font definitions & text styles */
 
@@ -24,6 +29,8 @@
 @import url('components/progress.css');  /* Progress bars & status */
 @import url('components/forms.css');     /* Forms, dropzones, inputs */
 @import url('components/modal.css');     /* Modal windows & overlays */
+@import url('components/video-card.css'); /* Video thumbnail cards */
+@import url('components/filters.css');   /* Filter buttons & controls */
 
 /* ===================================================================
    Layout Styles (if needed in future)

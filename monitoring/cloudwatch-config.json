@@ -1,0 +1,230 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CloudWatch monitoring configuration for BodyScript",
+
+  "Parameters": {
+    "Environment": {
+      "Type": "String",
+      "Default": "production",
+      "AllowedValues": ["staging", "production"],
+      "Description": "Deployment environment"
+    },
+    "AlertEmail": {
+      "Type": "String",
+      "Description": "Email address for alerts"
+    },
+    "SlackWebhookUrl": {
+      "Type": "String",
+      "Description": "Slack webhook URL for notifications",
+      "NoEcho": true
+    }
+  },
+
+  "Resources": {
+    "AlertTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "TopicName": {"Fn::Sub": "bodyscript-alerts-${Environment}"},
+        "DisplayName": "BodyScript Alerts",
+        "Subscription": [
+          {
+            "Protocol": "email",
+            "Endpoint": {"Ref": "AlertEmail"}
+          }
+        ]
+      }
+    },
+
+    "HighErrorRateAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmName": {"Fn::Sub": "BodyScript-${Environment}-HighErrorRate"},
+        "AlarmDescription": "High error rate detected",
+        "MetricName": "4XXError",
+        "Namespace": "AWS/CloudFront",
+        "Statistic": "Sum",
+        "Period": 300,
+        "EvaluationPeriods": 2,
+        "Threshold": 10,
+        "ComparisonOperator": "GreaterThanThreshold",
+        "AlarmActions": [{"Ref": "AlertTopic"}],
+        "OKActions": [{"Ref": "AlertTopic"}],
+        "TreatMissingData": "notBreaching"
+      }
+    },
+
+    "ApiHighLatencyAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmName": {"Fn::Sub": "BodyScript-${Environment}-ApiHighLatency"},
+        "AlarmDescription": "API response time is high",
+        "MetricName": "TargetResponseTime",
+        "Namespace": "AWS/ApplicationELB",
+        "Statistic": "Average",
+        "Period": 300,
+        "EvaluationPeriods": 3,
+        "Threshold": 2000,
+        "ComparisonOperator": "GreaterThanThreshold",
+        "AlarmActions": [{"Ref": "AlertTopic"}],
+        "OKActions": [{"Ref": "AlertTopic"}]
+      }
+    },
+
+    "ECSServiceUnhealthyAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmName": {"Fn::Sub": "BodyScript-${Environment}-ECSUnhealthy"},
+        "AlarmDescription": "ECS service has unhealthy tasks",
+        "MetricName": "RunningTaskCount",
+        "Namespace": "AWS/ECS",
+        "Statistic": "Average",
+        "Period": 300,
+        "EvaluationPeriods": 2,
+        "Threshold": 1,
+        "ComparisonOperator": "LessThanThreshold",
+        "AlarmActions": [{"Ref": "AlertTopic"}],
+        "Dimensions": [
+          {
+            "Name": "ServiceName",
+            "Value": {"Fn::Sub": "bodyscript-api-${Environment}"}
+          },
+          {
+            "Name": "ClusterName",
+            "Value": {"Fn::Sub": "bodyscript-${Environment}"}
+          }
+        ]
+      }
+    },
+
+    "DatabaseConnectionsAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmName": {"Fn::Sub": "BodyScript-${Environment}-DatabaseConnections"},
+        "AlarmDescription": "High database connection count",
+        "MetricName": "DatabaseConnections",
+        "Namespace": "AWS/RDS",
+        "Statistic": "Average",
+        "Period": 300,
+        "EvaluationPeriods": 2,
+        "Threshold": 80,
+        "ComparisonOperator": "GreaterThanThreshold",
+        "AlarmActions": [{"Ref": "AlertTopic"}]
+      }
+    },
+
+    "S3BucketSizeAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmName": {"Fn::Sub": "BodyScript-${Environment}-S3BucketSize"},
+        "AlarmDescription": "S3 bucket size approaching limit",
+        "MetricName": "BucketSizeBytes",
+        "Namespace": "AWS/S3",
+        "Statistic": "Average",
+        "Period": 86400,
+        "EvaluationPeriods": 1,
+        "Threshold": 107374182400,
+        "ComparisonOperator": "GreaterThanThreshold",
+        "AlarmActions": [{"Ref": "AlertTopic"}],
+        "Dimensions": [
+          {
+            "Name": "BucketName",
+            "Value": {"Fn::Sub": "bodyscript-storage-${Environment}"}
+          },
+          {
+            "Name": "StorageType",
+            "Value": "StandardStorage"
+          }
+        ]
+      }
+    },
+
+    "CustomMetricsPoseProcessingErrors": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "AlarmName": {"Fn::Sub": "BodyScript-${Environment}-PoseProcessingErrors"},
+        "AlarmDescription": "High rate of pose processing errors",
+        "MetricName": "PoseProcessingErrors",
+        "Namespace": "BodyScript/Processing",
+        "Statistic": "Sum",
+        "Period": 300,
+        "EvaluationPeriods": 2,
+        "Threshold": 5,
+        "ComparisonOperator": "GreaterThanThreshold",
+        "AlarmActions": [{"Ref": "AlertTopic"}]
+      }
+    },
+
+    "Dashboard": {
+      "Type": "AWS::CloudWatch::Dashboard",
+      "Properties": {
+        "DashboardName": {"Fn::Sub": "BodyScript-${Environment}-Overview"},
+        "DashboardBody": {
+          "Fn::Sub": [
+            "{\"widgets\":[{\"type\":\"metric\",\"x\":0,\"y\":0,\"width\":12,\"height\":6,\"properties\":{\"metrics\":[[\"AWS/CloudFront\",\"Requests\",\"DistributionId\",\"${CloudFrontId}\"],[\".\",\"BytesDownloaded\",\".\",\".\"],[\".\",\"4XXErrorRate\",\".\",\".\"],[\".\",\"5XXErrorRate\",\".\",\".\"]],\"view\":\"timeSeries\",\"stacked\":false,\"region\":\"us-east-1\",\"title\":\"CloudFront Metrics\",\"period\":300}},{\"type\":\"metric\",\"x\":12,\"y\":0,\"width\":12,\"height\":6,\"properties\":{\"metrics\":[[\"AWS/ApplicationELB\",\"RequestCount\",\"LoadBalancer\",\"${LoadBalancer}\"],[\".\",\"TargetResponseTime\",\".\",\".\"],[\".\",\"HTTPCode_Target_4XX_Count\",\".\",\".\"],[\".\",\"HTTPCode_Target_5XX_Count\",\".\",\".\"]],\"view\":\"timeSeries\",\"stacked\":false,\"region\":\"us-east-1\",\"title\":\"Application Load Balancer\",\"period\":300}},{\"type\":\"metric\",\"x\":0,\"y\":6,\"width\":12,\"height\":6,\"properties\":{\"metrics\":[[\"AWS/ECS\",\"CPUUtilization\",\"ServiceName\",\"bodyscript-api-${Environment}\",\"ClusterName\",\"bodyscript-${Environment}\"],[\".\",\"MemoryUtilization\",\".\",\".\",\".\",\".\"],[\".\",\"RunningTaskCount\",\".\",\".\",\".\",\".\"]],\"view\":\"timeSeries\",\"stacked\":false,\"region\":\"us-east-1\",\"title\":\"ECS Service Metrics\",\"period\":300}},{\"type\":\"metric\",\"x\":12,\"y\":6,\"width\":12,\"height\":6,\"properties\":{\"metrics\":[[\"AWS/RDS\",\"CPUUtilization\",\"DBInstanceIdentifier\",\"bodyscript-${Environment}\"],[\".\",\"DatabaseConnections\",\".\",\".\"],[\".\",\"ReadLatency\",\".\",\".\"],[\".\",\"WriteLatency\",\".\",\".\"]],\"view\":\"timeSeries\",\"stacked\":false,\"region\":\"us-east-1\",\"title\":\"RDS Metrics\",\"period\":300}},{\"type\":\"metric\",\"x\":0,\"y\":12,\"width\":24,\"height\":6,\"properties\":{\"metrics\":[[\"BodyScript/Processing\",\"PoseProcessingTime\"],[\".\",\"PoseProcessingErrors\"],[\".\",\"VideoUploadCount\"],[\".\",\"DataExportCount\"]],\"view\":\"timeSeries\",\"stacked\":false,\"region\":\"us-east-1\",\"title\":\"Custom Application Metrics\",\"period\":300}}]}",
+            {
+              "CloudFrontId": "E1234567890123",
+              "LoadBalancer": "bodyscript-alb"
+            }
+          ]
+        }
+      }
+    },
+
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {"Fn::Sub": "/aws/ecs/bodyscript-${Environment}"},
+        "RetentionInDays": 30
+      }
+    },
+
+    "ErrorLogFilter": {
+      "Type": "AWS::Logs::MetricFilter",
+      "Properties": {
+        "LogGroupName": {"Ref": "LogGroup"},
+        "FilterPattern": "[timestamp, request_id, level=\"ERROR\", ...]",
+        "MetricTransformations": [
+          {
+            "MetricNamespace": "BodyScript/Errors",
+            "MetricName": "ErrorCount",
+            "MetricValue": "1",
+            "DefaultValue": 0
+          }
+        ]
+      }
+    },
+
+    "PoseProcessingMetricFilter": {
+      "Type": "AWS::Logs::MetricFilter",
+      "Properties": {
+        "LogGroupName": {"Ref": "LogGroup"},
+        "FilterPattern": "[timestamp, request_id, level, message=\"Pose processing completed\", duration, ...]",
+        "MetricTransformations": [
+          {
+            "MetricNamespace": "BodyScript/Processing",
+            "MetricName": "PoseProcessingTime",
+            "MetricValue": "$duration",
+            "DefaultValue": 0
+          }
+        ]
+      }
+    }
+  },
+
+  "Outputs": {
+    "AlertTopicArn": {
+      "Description": "ARN of the SNS topic for alerts",
+      "Value": {"Ref": "AlertTopic"},
+      "Export": {
+        "Name": {"Fn::Sub": "BodyScript-${Environment}-AlertTopic"}
+      }
+    },
+
+    "DashboardUrl": {
+      "Description": "URL of the CloudWatch dashboard",
+      "Value": {
+        "Fn::Sub": "https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=BodyScript-${Environment}-Overview"
+      }
+    }
+  }
+}

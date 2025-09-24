@@ -17,7 +17,7 @@ body {
 .terminal-header {
   background: var(--bg-terminal);
   border: 1px solid var(--border-secondary);
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: 1rem;
   margin-bottom: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -53,7 +53,7 @@ body {
 .terminal-nav {
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border-secondary);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   padding: 1rem;
   margin-bottom: 2rem;
   display: flex;
@@ -71,7 +71,7 @@ body {
   border: 1px solid var(--border-secondary);
   color: var(--text-secondary);
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s;
   font-family: 'JetBrains Mono', monospace;
@@ -96,7 +96,7 @@ body {
   color: #27c93f;
   border: 1px solid #27c93f;
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
@@ -168,7 +168,7 @@ body {
   background: rgba(0, 0, 0, 0.8);
   color: var(--text-terminal-green);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
   font-family: 'JetBrains Mono', 'Consolas', monospace;
   border: 1px solid rgba(39, 201, 63, 0.3);
@@ -280,7 +280,7 @@ body {
   padding: 1rem;
   background: var(--bg-terminal);
   border: 1px solid var(--border-secondary);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
 }
 
 .stat-item {
@@ -334,7 +334,7 @@ body {
   color: #000;
   padding: 0.75rem 1rem;
   margin: 1rem 0;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   display: none;
   align-items: center;
   font-weight: 600;
@@ -368,7 +368,7 @@ body {
   padding: 0.5rem 1rem;
   background: var(--bg-terminal);
   border: 1px solid var(--border-secondary);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
   z-index: 1000;
   display: none;
@@ -429,7 +429,7 @@ body {
   transition: all 0.3s;
   font-family: 'JetBrains Mono', monospace;
   z-index: 10;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
 }
 
 .modal-close:hover {

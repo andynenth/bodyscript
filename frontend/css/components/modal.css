@@ -1,87 +1,139 @@
-/**
- * Modal Component - BodyScript
- * Video modal player, modal overlays, and dialog windows
- * Mobile: Responsive adjustments below 768px
- */
+/* =====================================================================
+   Modal Component Styles - Consolidated
+   Video modal player, modal overlays, and dialog windows
+   ===================================================================== */
 
-/* ===================================================================
-   Video Modal Container
-   =================================================================== */
+/* =================================================================
+   Base Modal Container
+   ================================================================= */
+
+.modal,
 .video-modal {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--bg-modal-overlay, rgba(0, 0, 0, 0.95));
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
-  z-index: 10000;
+  display: none;
   align-items: center;
   justify-content: center;
+  z-index: var(--z-modal, 10000);
+  animation: modalFadeIn var(--transition-base);
 }
 
+/* Active state - show modal */
+.modal.active,
 .video-modal.active {
   display: flex;
 }
 
-/* ===================================================================
-   Modal Content
-   =================================================================== */
-.modal-content {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  border: 1px solid var(--border-secondary);
-  background: #000;
-  border-radius: 4px;
+/* =================================================================
+   Modal Animations
+   ================================================================= */
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-/* ===================================================================
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* =================================================================
+   Modal Content Container
+   ================================================================= */
+
+.modal-content {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: modalSlideIn var(--transition-base);
+}
+
+/* =================================================================
+   Modal Video Element
+   ================================================================= */
+
+.modal-video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 0;
+}
+
+/* =================================================================
    Modal Close Button
-   =================================================================== */
+   ================================================================= */
+
 .modal-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  width: 40px;
+  height: 40px;
   background: rgba(0, 0, 0, 0.7);
-  border: 1px solid var(--text-terminal-green);
-  color: var(--text-terminal-green);
-  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-terminal-green);
+  color: var(--color-terminal-green);
+  font-size: 24px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
   cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 4px;
-  z-index: 10001;
-  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  z-index: 10;
+  border-radius: var(--radius-md);
 }
 
 .modal-close:hover {
-  background: var(--text-terminal-green);
-  color: #000;
-  transform: scale(1.05);
+  background: var(--color-terminal-green);
+  color: var(--text-inverse, #000);
+  transform: scale(1.1);
 }
 
-/* ===================================================================
-   Modal Video Player
-   =================================================================== */
-.modal-video {
-  width: 100%;
-  height: auto;
-  max-height: calc(90vh - 60px);
-  object-fit: contain;
-  display: block;
-  border-radius: 4px;
+/* =================================================================
+   Modal Title/Caption
+   ================================================================= */
+
+.modal-title {
+  position: absolute;
+  bottom: -40px;
+  left: 0;
+  color: var(--color-terminal-green);
+  font-size: 1rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
 }
 
-/* ===================================================================
-   Video Player Container (for thumbnails)
-   =================================================================== */
+/* =================================================================
+   Video Player Container (for thumbnails/preview)
+   ================================================================= */
+
 .video-player-container {
   margin: 2rem auto;
   width: 300px;
@@ -98,7 +150,7 @@
 }
 
 .video-player-container:hover {
-  border-color: var(--text-terminal-green);
+  border-color: var(--color-terminal-green);
 }
 
 /* Play icon overlay */
@@ -122,24 +174,20 @@
   background: #111;
 }
 
-/* ===================================================================
-   Mobile Responsive Styles (< 768px)
-   =================================================================== */
-@media (max-width: 768px) {
-  .modal-content {
-    width: 95%;
-    max-height: 95vh;
-  }
+/* =================================================================
+   Responsive Adjustments
+   ================================================================= */
 
+/* Tablet and smaller (< 768px) */
+@media (max-width: 768px) {
   .modal-close {
-    top: 5px;
-    right: 5px;
-    padding: 0.4rem 0.8rem;
-    font-size: 13px;
+    top: 1rem;
+    right: 1rem;
   }
 
   .modal-video {
-    max-height: calc(95vh - 40px);
+    width: 90vw;
+    max-width: 90vw;
   }
 
   /* Smaller video preview on mobile */
@@ -154,33 +202,45 @@
   }
 }
 
-/* ===================================================================
-   Modal Animations
-   =================================================================== */
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
+/* Mobile (< 640px) */
+@media (max-width: 640px) {
+  .modal-close {
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
   }
-  to {
-    opacity: 1;
+
+  .modal-video {
+    max-width: 100vw;
+    max-height: 80vh;
+  }
+
+  .modal-title {
+    font-size: 0.875rem;
   }
 }
 
-@keyframes modalSlideIn {
-  from {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+/* =================================================================
+   Accessibility
+   ================================================================= */
+
+/* Focus styles for keyboard navigation */
+.modal-close:focus {
+  outline: 2px solid var(--color-terminal-green);
+  outline-offset: 2px;
 }
 
-.video-modal {
-  animation: modalFadeIn 0.2s ease;
-}
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .modal,
+  .video-modal,
+  .modal-content {
+    animation: none;
+  }
 
-.modal-content {
-  animation: modalSlideIn 0.3s ease;
+  .modal-close {
+    transition: none;
+  }
 }

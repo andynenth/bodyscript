@@ -1,0 +1,202 @@
+/* =====================================================================
+   Responsive Breakpoints - Centralized Media Queries
+   ===================================================================== */
+
+/* =================================================================
+   Breakpoint Variables
+   ================================================================= */
+
+:root {
+  /* Breakpoint Values */
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+/* =================================================================
+   Media Query Utilities
+   Note: CSS doesn't support variables in media queries directly,
+   but we define standard breakpoints here for documentation
+   ================================================================= */
+
+/*
+   Usage Guidelines:
+
+   Mobile First (min-width):
+   - @media (min-width: 640px)  - Small devices and up
+   - @media (min-width: 768px)  - Medium devices and up
+   - @media (min-width: 1024px) - Large devices and up
+   - @media (min-width: 1280px) - Extra large devices and up
+
+   Desktop First (max-width):
+   - @media (max-width: 639px)  - Mobile only
+   - @media (max-width: 767px)  - Small devices and down
+   - @media (max-width: 1023px) - Medium devices and down
+   - @media (max-width: 1279px) - Large devices and down
+
+   Specific Ranges:
+   - @media (min-width: 640px) and (max-width: 767px)  - Small only
+   - @media (min-width: 768px) and (max-width: 1023px) - Medium only
+   - @media (min-width: 1024px) and (max-width: 1279px) - Large only
+*/
+
+/* =================================================================
+   Common Responsive Patterns
+   ================================================================= */
+
+/* Container widths at different breakpoints */
+@media (min-width: 640px) {
+  :root {
+    --container-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --container-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --container-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --container-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --container-width: 1400px;
+  }
+}
+
+/* =================================================================
+   Grid Columns Responsive
+   ================================================================= */
+
+/* Default (mobile) */
+:root {
+  --grid-cols: 2;
+}
+
+/* Tablet */
+@media (min-width: 640px) {
+  :root {
+    --grid-cols: 3;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  :root {
+    --grid-cols: 4;
+  }
+}
+
+/* Large Desktop */
+@media (min-width: 1280px) {
+  :root {
+    --grid-cols: 5;
+  }
+}
+
+/* =================================================================
+   Typography Scaling
+   ================================================================= */
+
+/* Mobile typography */
+@media (max-width: 639px) {
+  :root {
+    --text-scale: 0.9;
+    --heading-scale: 0.85;
+  }
+}
+
+/* Tablet typography */
+@media (min-width: 640px) and (max-width: 1023px) {
+  :root {
+    --text-scale: 0.95;
+    --heading-scale: 0.9;
+  }
+}
+
+/* Desktop typography */
+@media (min-width: 1024px) {
+  :root {
+    --text-scale: 1;
+    --heading-scale: 1;
+  }
+}
+
+/* =================================================================
+   Spacing Adjustments
+   ================================================================= */
+
+/* Compact spacing on mobile */
+@media (max-width: 639px) {
+  :root {
+    --spacing-page: var(--spacing-md);
+    --spacing-section: var(--spacing-xl);
+  }
+}
+
+/* Normal spacing on tablet */
+@media (min-width: 640px) and (max-width: 1023px) {
+  :root {
+    --spacing-page: var(--spacing-lg);
+    --spacing-section: var(--spacing-2xl);
+  }
+}
+
+/* Generous spacing on desktop */
+@media (min-width: 1024px) {
+  :root {
+    --spacing-page: var(--spacing-xl);
+    --spacing-section: var(--spacing-3xl);
+  }
+}
+
+/* =================================================================
+   Utility Classes for Responsive Display
+   ================================================================= */
+
+/* Hide on mobile */
+@media (max-width: 639px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
+}
+
+/* Hide on tablet */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .hide-tablet { display: none !important; }
+  .show-tablet { display: block !important; }
+}
+
+/* Hide on desktop */
+@media (min-width: 1024px) {
+  .hide-desktop { display: none !important; }
+  .show-desktop { display: block !important; }
+}
+
+/* Mobile only */
+@media (min-width: 640px) {
+  .mobile-only { display: none !important; }
+}
+
+/* Tablet and up */
+@media (max-width: 639px) {
+  .tablet-up { display: none !important; }
+}
+
+/* Desktop and up */
+@media (max-width: 1023px) {
+  .desktop-up { display: none !important; }
+}
