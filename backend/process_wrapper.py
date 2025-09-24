@@ -188,8 +188,8 @@ class WebVideoProcessor:
             frames_extracted, _ = extract_frames(
                 trimmed_video,
                 output_dir=frames_dir,
-                interval=3,  # Reduced from 1 to 3 - extract every 3rd frame to save memory
-                format='jpg',  # Changed from PNG to JPEG - ~10x smaller
+                interval=1,  # Process ALL frames for complete pose data
+                format='jpg',  # Use JPEG to save memory
                 quality=85  # Good quality/size balance
             )
 

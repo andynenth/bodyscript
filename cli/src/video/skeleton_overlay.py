@@ -10,7 +10,6 @@ import pandas as pd
 from pathlib import Path
 import sys
 import argparse
-import bisect
 from typing import List, Tuple
 
 # MediaPipe pose connections (skeleton structure)
@@ -181,13 +180,6 @@ def create_overlay_video(video_path: str,
     print(f"\nProcessing frames...")
     frame_idx = 0
 
-    # Get all unique frame IDs from the pose data for efficient lookup
-    available_frames = sorted(pose_df['frame_id'].unique())
-    print(f"Available pose data for frames: {available_frames[:10]}... (showing first 10)")
-
-    # Cache for last known pose data (for frames without data)
-    last_frame_data = None
-
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -197,9 +189,8 @@ def create_overlay_video(video_path: str,
         frame_data = pose_df[pose_df['frame_id'] == frame_idx]
 
         if not frame_data.empty:
-            # Found exact frame data
+            # Draw skeleton
             frame = draw_skeleton_on_frame(frame, frame_data)
-            last_frame_data = frame_data  # Cache for interpolation
 
             # Add info text
             if show_info:
@@ -212,41 +203,10 @@ def create_overlay_video(video_path: str,
                 cv2.putText(frame, style_text, (10, 60),
                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 200, 0), 2)
         else:
-            # No exact frame data - use nearest or last known
-            # Find nearest frame with data
-            if available_frames:
-                # Find closest frame
-                idx = bisect.bisect_left(available_frames, frame_idx)
-
-                # Use the closest available frame (preferring previous frame)
-                if idx > 0:
-                    nearest_frame = available_frames[idx - 1]
-                elif idx < len(available_frames):
-                    nearest_frame = available_frames[idx]
-                else:
-                    nearest_frame = available_frames[-1]
-
-                nearest_data = pose_df[pose_df['frame_id'] == nearest_frame]
-                if not nearest_data.empty:
-                    frame = draw_skeleton_on_frame(frame, nearest_data)
-
-                    if show_info:
-                        text = f"Frame: {frame_idx}/{total_frames} | Using frame {nearest_frame} data"
-                        cv2.putText(frame, text, (10, 30),
-                                  cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
-            elif last_frame_data is not None:
-                # Fallback: use last known frame data
-                frame = draw_skeleton_on_frame(frame, last_frame_data)
-
-                if show_info:
-                    text = f"Frame: {frame_idx}/{total_frames} | Using cached data"
-                    cv2.putText(frame, text, (10, 30),
-                              cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 165, 0), 2)
-            else:
-                # No data available at all
-                if show_info:
-                    cv2.putText(frame, f"Frame: {frame_idx} | No pose data", (10, 30),
-                              cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+            # No pose data for this frame
+            if show_info:
+                cv2.putText(frame, f"Frame: {frame_idx} | No pose data", (10, 30),
+                          cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
         # Write frame
         out.write(frame)

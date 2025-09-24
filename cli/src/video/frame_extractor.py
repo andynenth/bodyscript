@@ -106,7 +106,7 @@ def extract_frames(video_path: str,
         # Check if this frame should be extracted
         if current_frame in frames_to_extract:
             # Generate filename
-            frame_number = current_frame + 1  # 1-based numbering for files
+            frame_number = current_frame  # Use 0-based numbering to match video frame indices
             if format.lower() == 'png':
                 filename = f"{prefix}_{frame_number:06d}.png"
                 filepath = output_path / filename
