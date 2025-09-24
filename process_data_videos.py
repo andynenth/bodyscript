@@ -4,6 +4,7 @@ Process videos from data/videos directory using the local API.
 """
 
 import os
+import sys
 import shutil
 import requests
 import time
@@ -133,6 +134,143 @@ def download_results(job_id, video_name):
     else:
         print(f"  ❌ Failed to download CSV")
 
+def show_help():
+    """Display help information."""
+    help_text = """
+🎬 BodyScript Batch Video Processor
+=====================================
+
+USAGE:
+    python process_data_videos.py [OPTIONS]
+
+DESCRIPTION:
+    Process multiple videos through the BodyScript pose detection API.
+    This script automatically processes all videos in the data/videos/ directory
+    and saves the results (skeleton overlay videos and CSV pose data) to
+    data/processed_videos/.
+
+OPTIONS:
+    --help, -h      Show this help message
+    --manual        Show detailed manual with examples
+
+WORKFLOW:
+    1. Place video files in: data/videos/
+    2. Start the API server: cd backend && python app.py
+    3. Run this script: python process_data_videos.py
+    4. Find results in: data/processed_videos/
+
+SUPPORTED FORMATS:
+    - .mp4 (recommended)
+    - .mov
+    - .avi
+
+REQUIREMENTS:
+    - API server must be running on http://localhost:8000
+    - Videos should be under 30MB (API limit)
+    - Videos should be under 10 seconds (for memory efficiency)
+    """
+    print(help_text)
+
+def show_manual():
+    """Display detailed manual."""
+    manual_text = """
+📚 DETAILED MANUAL
+==================
+
+OVERVIEW:
+---------
+This script is a batch processing client for the BodyScript pose detection API.
+It processes multiple videos automatically without needing to use the web interface.
+
+DIRECTORY STRUCTURE:
+--------------------
+    bodyscript/
+    ├── data/
+    │   ├── videos/           # Place input videos here
+    │   └── processed_videos/ # Results will be saved here
+    ├── backend/
+    │   └── temp/            # Temporary processing directory
+    └── process_data_videos.py
+
+STEP-BY-STEP GUIDE:
+-------------------
+1. PREPARE VIDEOS:
+   - Copy your videos to: data/videos/
+   - Ensure videos are under 30MB and 10 seconds
+   - Supported formats: .mp4, .mov, .avi
+
+2. START THE API:
+   cd backend
+   python app.py
+   # Should see: "INFO: Uvicorn running on http://127.0.0.1:8000"
+
+3. RUN BATCH PROCESSING:
+   python process_data_videos.py
+   # You'll see a list of videos and be asked to confirm
+
+4. MONITOR PROGRESS:
+   The script will show:
+   - Progress bars for each video
+   - Frame-by-frame processing status
+   - Success/failure indicators
+   - Processing statistics
+
+5. COLLECT RESULTS:
+   For each video "example.mp4", you'll get:
+   - data/processed_videos/example_processed.mp4 (with skeleton overlay)
+   - data/processed_videos/example_pose_data.csv (landmark coordinates)
+
+PROCESSING DETAILS:
+-------------------
+- Extracts ALL frames (interval=1) for smooth skeleton tracking
+- Uses MediaPipe Pose for 33 body landmarks
+- Generates colored skeleton overlays (green/pink/purple)
+- Outputs CSV with frame_id, landmark_id, x, y, z, visibility
+
+ERROR HANDLING:
+---------------
+- If a video fails, the script continues with the next one
+- Failed videos are reported in the final summary
+- Common issues:
+  * API not running: Start with 'cd backend && python app.py'
+  * Video too large: Keep under 30MB
+  * Unsupported format: Convert to .mp4
+
+EXAMPLES:
+---------
+# Process all videos in data/videos/
+python process_data_videos.py
+
+# Check if API is running
+curl http://localhost:8000/health
+
+# Process a single video manually (for testing)
+1. Copy video to: backend/temp/data_videos/test.mp4
+2. Use the API directly or web interface
+
+TIPS:
+-----
+- For best results, use well-lit videos with clear human subjects
+- Videos with single person work best
+- Avoid videos with rapid camera movement
+- Process in batches to manage memory usage
+
+TROUBLESHOOTING:
+----------------
+Q: "Cannot connect to API"
+A: Start the backend first: cd backend && python app.py
+
+Q: "Processing failed: Memory error"
+A: Video might be too long or high-resolution. Try shorter clips.
+
+Q: "No skeleton overlay visible"
+A: MediaPipe couldn't detect a person. Check video quality/lighting.
+
+Q: "CSV is empty or has few frames"
+A: Person might be partially out of frame or obscured.
+    """
+    print(manual_text)
+
 def main():
     """Main function to process all videos."""
     print("🎬 BodyScript Video Processor")
@@ -197,6 +335,16 @@ def main():
     print(f"\n📁 Results saved in: {OUTPUT_DIR}")
 
 if __name__ == "__main__":
+    # Check for help flags first (before API check)
+    if len(sys.argv) > 1:
+        arg = sys.argv[1].lower()
+        if arg in ['--help', '-h']:
+            show_help()
+            sys.exit(0)
+        elif arg == '--manual':
+            show_manual()
+            sys.exit(0)
+
     # Check if API is running
     try:
         health = requests.get(f"{API_URL}/health")

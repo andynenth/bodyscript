@@ -12,10 +12,10 @@ services:
       - PYTHONUNBUFFERED=1
     command: |
       bash -c "
-        apt-get update && apt-get install -y ffmpeg libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 &&
+        apt-get update && apt-get install -y ffmpeg libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 curl &&
         pip install --upgrade pip &&
-        pip install fastapi uvicorn python-multipart aiofiles mediapipe==0.10.7 opencv-python==4.8.1 pandas numpy &&
-        cd web/backend &&
+        pip install fastapi uvicorn python-multipart aiofiles mediapipe==0.10.7 opencv-python==4.8.1 pandas numpy boto3 python-dotenv psutil &&
+        cd backend &&
         uvicorn app:app --host 0.0.0.0 --port 8000 --reload
       "
     healthcheck:

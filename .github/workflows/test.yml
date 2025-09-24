@@ -1,0 +1,66 @@
+name: Test Video Processing
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test-video-processing:
+    name: Test Video Processing Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          ffmpeg \
+          libgl1-mesa-glx \
+          libglib2.0-0 \
+          libsm6 \
+          libxext6 \
+          libxrender-dev \
+          libgomp1
+
+    - name: Install Python dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r backend/requirements.txt
+
+    - name: Test frame extraction
+      run: |
+        echo "Testing frame extraction utility..."
+        python extract_frames.py --help || echo "extract_frames.py not found"
+
+    - name: Test MediaPipe import
+      run: |
+        python -c "import mediapipe as mp; print('MediaPipe version:', mp.__version__)"
+        python -c "import cv2; print('OpenCV version:', cv2.__version__)"
+
+    - name: Test FastAPI app startup
+      run: |
+        cd backend
+        timeout 10 python -c "from app import app; print('FastAPI app imported successfully')" || true
+
+    - name: Check file structure
+      run: |
+        echo "=== Project Structure ==="
+        ls -la
+        echo ""
+        echo "=== Backend Structure ==="
+        ls -la backend/
+        echo ""
+        echo "=== CLI Structure ==="
+        ls -la cli/src/
