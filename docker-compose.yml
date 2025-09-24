@@ -1,34 +1,43 @@
 version: '3.8'
 
 services:
-  backend:
-    image: python:3.9-slim
-    working_dir: /app
-    volumes:
-      - ..:/app  # Mount entire bodyscript directory
+  bodyscript:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:8000"
     environment:
+      # Core settings
+      - ENVIRONMENT=${ENVIRONMENT:-development}
       - PYTHONUNBUFFERED=1
-    command: |
-      bash -c "
-        apt-get update && apt-get install -y ffmpeg libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 curl &&
-        pip install --upgrade pip &&
-        pip install fastapi uvicorn python-multipart aiofiles mediapipe==0.10.7 opencv-python==4.8.1 pandas numpy boto3 python-dotenv psutil &&
-        cd backend &&
-        uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-      "
+      # API settings
+      - MAX_VIDEO_SIZE_MB=${MAX_VIDEO_SIZE_MB:-30}
+      - MAX_VIDEO_DURATION=${MAX_VIDEO_DURATION:-10}
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      # Memory management
+      - MEMORY_LIMIT_MB=${MEMORY_LIMIT_MB:-400}
+      # R2 Storage (optional)
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID:-}
+      - R2_ACCESS_KEY=${R2_ACCESS_KEY:-}
+      - R2_SECRET_KEY=${R2_SECRET_KEY:-}
+    volumes:
+      # Development: mount source for hot reload
+      - ./backend:/app:${MOUNT_MODE:-rw}
+      - ./frontend:/frontend:${MOUNT_MODE:-ro}
+      # Production: use named volumes for persistence
+      - temp_data:/app/temp
+    restart: ${RESTART_POLICY:-no}
+    mem_limit: ${MEMORY_LIMIT:-800m}
+    memswap_limit: ${MEMORY_SWAP_LIMIT:-1g}
+    command: ${COMMAND:-uvicorn app:app --host 0.0.0.0 --port 8000 --reload}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
-  frontend:
-    image: nginx:alpine
-    volumes:
-      - ./frontend:/usr/share/nginx/html:ro
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
+volumes:
+  temp_data:
+    driver: local

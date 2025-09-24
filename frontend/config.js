@@ -67,9 +67,27 @@ const Config = {
   }
 };
 
-// Set global API URL
-// Using same port as frontend since backend serves both
-window.API_URL = 'http://localhost:8000';
+// Set global API URL dynamically based on environment
+window.API_URL = (() => {
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+
+  // Local development
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return `http://localhost:${port || '8000'}`;
+  }
+
+  // Production EC2
+  if (hostname.includes('bodyscript')) {
+    // Docker on port 8000
+    return `http://${hostname}:8000`;
+  }
+
+  // Fallback: same origin
+  return `${window.location.protocol}//${hostname}${port ? ':' + port : ''}`;
+})();
+
+console.log('API URL configured as:', window.API_URL);
 
 // Initialize keep-alive mechanism if enabled
 if (Config.keepAlive.enabled) {
