@@ -150,8 +150,6 @@ body {
   border: 2px solid var(--text-terminal-green);
   z-index: 4;
   pointer-events: none;
-  opacity: 1;
-  transition: opacity 0.2s ease;
 }
 
 /* Video name overlay */
