@@ -117,4 +117,5 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-DEPLOYMENT.md
+DEPLOYMENT.md*_backup_*/
+frontend_backup_*/
