@@ -398,31 +398,27 @@ body {
 
 .modal-content {
   position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  max-width: 90%;
-  max-height: 90vh;
 }
 
 .modal-video {
-  width: auto !important;
-  height: auto !important;
-  max-width: 90vw !important;
-  max-height: 85vh !important;
   display: block;
-  box-shadow: none !important;
-  border: none !important;
-  border-radius: 0 !important;
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
 }
 
 .modal-close {
   position: absolute;
-  top: -40px;
-  right: 0;
+  top: 1rem;
+  right: 1rem;
   width: 40px;
   height: 40px;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.7);
   border: 2px solid var(--text-terminal-green);
   color: var(--text-terminal-green);
   font-size: 24px;
@@ -432,12 +428,14 @@ body {
   justify-content: center;
   transition: all 0.3s;
   font-family: 'JetBrains Mono', monospace;
+  z-index: 10;
+  border-radius: 4px;
 }
 
 .modal-close:hover {
   background: var(--text-terminal-green);
   color: #000;
-  transform: rotate(90deg);
+  transform: scale(1.1);
 }
 
 .modal-title {
@@ -559,7 +557,8 @@ body {
 
 @media (max-width: 480px) {
   .terminal-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
 
   /* Text is already handled by 640px breakpoint */

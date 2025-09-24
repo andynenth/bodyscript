@@ -1,0 +1,22 @@
+Web Service bodyscript-api exceeded its memory limit
+
+An instance of your Web Service bodyscript-api exceeded its memory limit, which triggered an automatic restart. While restarting, the instance was temporarily unavailable.
+
+This might have been caused by:
+
+A memory leak in your application
+A spike in incoming traffic
+An undersized instance type for your use case
+Recommended actions
+
+Check your service's logs and metrics to help identify why the instance exceeded its memory limit.
+
+If you find a memory leak, patch the leak and redeploy your service.
+If you experienced a traffic spike, consider scaling your service to help handle future spikes.
+Otherwise, your service might require more memory for your use case. To increase memory, upgrade your instance type.
+If you take no action, your service might exceed its memory limit again, resulting in additional interruptions.
+
+If you can't resolve this issue, please reach out to support@render.com.
+
+Best,
+The Render team

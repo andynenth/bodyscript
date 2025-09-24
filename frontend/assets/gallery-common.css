@@ -264,41 +264,39 @@ body {
   to { opacity: 1; }
 }
 
-.modal-content {
-  position: relative;
-  max-width: 90vh;
-  max-height: 90vh;
-  width: auto;
-  height: auto;
-}
-
 .modal-video {
-  width: 100%;
-  height: 100%;
-  max-width: calc(90vh * 9/16);
-  border-radius: 12px;
+  display: block;
+  max-height: 90vh;
+  max-width: 90vw;
+  height: auto;
+  width: auto;
+  border-radius: 0;
 }
 
 .modal-close {
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid var(--text-terminal-green);
+  color: var(--text-terminal-green);
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  font-size: 24px;
+  font-family: 'JetBrains Mono', monospace;
   transition: all var(--transition-fast);
+  z-index: 10;
 }
 
 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: rotate(90deg);
+  background: var(--text-terminal-green);
+  color: #000;
+  transform: scale(1.1);
 }
 
 /* Filters */

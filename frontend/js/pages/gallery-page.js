@@ -151,13 +151,11 @@ function initializeVideoModal() {
   if (!$('.video-modal')) {
     const modal = createElement('div', 'video-modal');
     modal.innerHTML = `
-      <div class="modal-content">
-        <button class="modal-close">×</button>
-        <video class="modal-video" controls controlsList="nodownload">
-          <source src="" type="video/mp4">
-        </video>
-        <div class="modal-title"></div>
-      </div>
+      <button class="modal-close">×</button>
+      <video class="modal-video" controls controlsList="nodownload">
+        <source src="" type="video/mp4">
+      </video>
+      <div class="modal-title"></div>
     `;
     document.body.appendChild(modal);
   }

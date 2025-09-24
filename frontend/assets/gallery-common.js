@@ -306,12 +306,10 @@ function initializeFullScreenPlayer() {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = `
-      <div class="modal-content">
-        <button class="modal-close">×</button>
-        <video class="modal-video" controls>
-          <source src="" type="video/mp4">
-        </video>
-      </div>
+      <button class="modal-close">×</button>
+      <video class="modal-video" controls>
+        <source src="" type="video/mp4">
+      </video>
     `;
     document.body.appendChild(modal);
   }
@@ -488,19 +486,27 @@ function initializeTouchSupport() {
       card.addEventListener('touchstart', (e) => {
         touchTimer = setTimeout(() => {
           // Show preview on long press
-          thumbnail.style.display = 'none';
-          video.style.display = 'block';
-          video.play().catch(() => {});
+          if (thumbnail) {
+            thumbnail.style.display = 'none';
+          }
+          if (video) {
+            video.style.display = 'block';
+            video.play().catch(() => {});
+          }
         }, 500);
       }, { passive: true });
 
       card.addEventListener('touchend', () => {
         clearTimeout(touchTimer);
         // Hide preview
-        video.pause();
-        video.currentTime = 0;
-        video.style.display = 'none';
-        thumbnail.style.display = 'block';
+        if (video) {
+          video.pause();
+          video.currentTime = 0;
+          video.style.display = 'none';
+        }
+        if (thumbnail) {
+          thumbnail.style.display = 'block';
+        }
       }, { passive: true });
     });
   }
