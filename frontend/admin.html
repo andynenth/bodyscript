@@ -347,7 +347,7 @@
       showLoading(true);
 
       try {
-        const response = await fetch(`${window.API_URL}/admin/pending-videos?auth=${adminToken}`);
+        const response = await fetch(`${window.API_URL}/api/admin/pending-videos?auth=${adminToken}`);
 
         if (response.ok) {
           // Save token
@@ -382,7 +382,7 @@
       showLoading(true);
 
       try {
-        const response = await fetch(`${window.API_URL}/admin/pending-videos?auth=${adminToken}`);
+        const response = await fetch(`${window.API_URL}/api/admin/pending-videos?auth=${adminToken}`);
 
         if (!response.ok) {
           throw new Error('Failed to load videos');
@@ -536,7 +536,7 @@
       }
 
       try {
-        const response = await fetch(`${window.API_URL}/admin/approve-to-gallery?auth=${adminToken}`, {
+        const response = await fetch(`${window.API_URL}/api/admin/approve-to-gallery?auth=${adminToken}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -602,7 +602,7 @@
       if (!confirm('Remove this video from the gallery?')) return;
 
       try {
-        const response = await fetch(`${window.API_URL}/admin/unapprove/${jobId}?auth=${adminToken}`, {
+        const response = await fetch(`${window.API_URL}/api/admin/unapprove/${jobId}?auth=${adminToken}`, {
           method: 'POST'
         });
 
@@ -678,7 +678,7 @@
       if (!confirm('Delete this video permanently?')) return;
 
       try {
-        const response = await fetch(`${window.API_URL}/admin/reject-video/${jobId}?auth=${adminToken}`, {
+        const response = await fetch(`${window.API_URL}/api/admin/reject-video/${jobId}?auth=${adminToken}`, {
           method: 'DELETE'
         });
 

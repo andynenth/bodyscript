@@ -227,7 +227,14 @@ class WebVideoProcessor:
                 progress_callback(76, "Creating skeleton overlay video...")
 
             output_video = str(job_dir / "output.mp4")
-            self.create_skeleton_video(trimmed_video, csv_path, output_video)
+            try:
+                self.create_skeleton_video(trimmed_video, csv_path, output_video)
+            except Exception as e:
+                print(f"Warning: Skeleton overlay failed: {e}")
+                print("Using trimmed video as output instead")
+                # Fall back to using the trimmed video as output
+                import shutil
+                shutil.copy2(trimmed_video, output_video)
 
             # Step 6: Generate thumbnail and preview
             if progress_callback:

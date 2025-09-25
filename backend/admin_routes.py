@@ -11,7 +11,7 @@ import json
 from storage_r2 import r2_storage
 
 # Create router
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
 def verify_admin(token: str = Query(..., alias="auth")):
@@ -168,21 +168,12 @@ async def approve_to_gallery(
         Success status and gallery URLs
     """
     try:
-        # Check environment to decide handling
-        is_development = os.getenv('ENVIRONMENT', 'development') == 'development'
-
-        if is_development:
-            # In development, just create local URLs
-            urls = {
-                'thumbnail': f"/api/serve/{request.job_id}/thumbnail.jpg",
-                'preview': f"/api/serve/{request.job_id}/preview.mp4",
-                'full': f"/api/serve/{request.job_id}/output.mp4"
-            }
-        else:
-            # In production, copy to R2
-            urls = r2_storage.copy_to_gallery(request.job_id, request.display_name)
-            if not urls:
-                raise HTTPException(status_code=500, detail="Failed to copy to gallery")
+        # Always use local URLs since we're not using R2
+        urls = {
+            'thumbnail': f"/api/serve/{request.job_id}/thumbnail.jpg",
+            'preview': f"/api/serve/{request.job_id}/preview.mp4",
+            'full': f"/api/serve/{request.job_id}/output.mp4"
+        }
 
         # Prepare gallery metadata
         # For local development, always use local file paths
@@ -207,9 +198,19 @@ async def approve_to_gallery(
             'duration': '0:30'
         }
 
-        # Try to get actual statistics from metadata
+        # Try to get actual statistics from local metadata
         try:
-            pending_videos = r2_storage.list_pending_uploads()
+            # Load from local pending videos
+            pending_videos = []
+            temp_dir = Path("temp")
+            if temp_dir.exists():
+                metadata_file = temp_dir / request.job_id / "metadata.json"
+                if metadata_file.exists():
+                    with open(metadata_file) as f:
+                        metadata = json.load(f)
+                        metadata['job_id'] = request.job_id
+                        pending_videos.append(metadata)
+
             for video in pending_videos:
                 if video['job_id'] == request.job_id:
                     stats = video.get('statistics', {})
@@ -241,31 +242,23 @@ async def approve_to_gallery(
         with open(gallery_file, 'w') as f:
             json.dump(gallery_data, f, indent=2)
 
-        # Track approved videos in development
-        if is_development:
-            approved_file = Path("temp") / "approved_videos.json"
-            approved_data = {'approved': []}
-            if approved_file.exists():
-                try:
-                    with open(approved_file) as f:
-                        approved_data = json.load(f)
-                except:
-                    pass
+        # Track approved videos
+        approved_file = Path("temp") / "approved_videos.json"
+        approved_data = {'approved': []}
+        if approved_file.exists():
+            try:
+                with open(approved_file) as f:
+                    approved_data = json.load(f)
+            except:
+                pass
 
-            # Add this video to approved list
-            if request.job_id not in approved_data.get('approved', []):
-                approved_data.setdefault('approved', []).append(request.job_id)
-                with open(approved_file, 'w') as f:
-                    json.dump(approved_data, f, indent=2)
+        # Add this video to approved list
+        if request.job_id not in approved_data.get('approved', []):
+            approved_data.setdefault('approved', []).append(request.job_id)
+            with open(approved_file, 'w') as f:
+                json.dump(approved_data, f, indent=2)
 
-        # In production, also update R2
-        if not is_development and r2_storage.is_configured():
-            success = r2_storage.update_gallery_json(gallery_entry)
-            if success:
-                # Delete from uploads to save space
-                r2_storage.delete_upload(request.job_id)
-        else:
-            success = True
+        success = True
 
         return {
             'success': success,
