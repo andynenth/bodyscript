@@ -51,9 +51,12 @@ fi"
 
 # Step 3: Install system dependencies
 echo -e "${YELLOW}Step 3: Installing system dependencies...${NC}"
+# First, add deadsnakes PPA for Python 3.9 if needed
+run_remote "sudo add-apt-repository ppa:deadsnakes/ppa -y 2>/dev/null || true"
 run_remote "sudo apt-get update && sudo apt-get install -y \
     python3.9 \
     python3.9-venv \
+    python3.9-dev \
     python3-pip \
     ffmpeg \
     libgl1 \

@@ -123,11 +123,11 @@ def periodic_cleanup():
         last_cleanup_time = current_time
 
 
-@app.get("/")
-async def root():
+@app.get("/api")
+async def api_info():
     # Run periodic cleanup on root endpoint access
     periodic_cleanup()
-    """Root endpoint - API information."""
+    """API information endpoint."""
     return {
         "name": "BodyScript Pose Detection API",
         "version": "1.0.0",
@@ -141,6 +141,17 @@ async def root():
             "memory_health": "/health/memory"
         }
     }
+
+
+@app.get("/upload")
+async def upload_page():
+    """Serve the upload page."""
+    from pathlib import Path
+    upload_path = Path(__file__).parent.parent / "frontend" / "upload.html"
+    if upload_path.exists():
+        return FileResponse(str(upload_path))
+    else:
+        raise HTTPException(status_code=404, detail="Upload page not found")
 
 
 @app.get("/api/serve/{job_id}/{filename}")
