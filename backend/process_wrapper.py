@@ -334,29 +334,49 @@ class WebVideoProcessor:
 
     def create_skeleton_video(self, video_path: str, csv_path: str, output_path: str):
         """Create video with skeleton overlay using the same script as pipeline."""
+        print(f"[DEBUG] create_skeleton_video called")
+        print(f"  video_path: {video_path}")
+        print(f"  csv_path: {csv_path}")
+        print(f"  output_path: {output_path}")
+
         # Get absolute paths
         project_root = Path(__file__).parent.parent
         skeleton_script = project_root / "cli" / "src" / "video" / "skeleton_overlay.py"
+        print(f"  skeleton_script: {skeleton_script}")
+        print(f"  skeleton_script exists: {skeleton_script.exists()}")
 
         # Convert paths to absolute if they're relative
         video_abs = Path(video_path).absolute()
         csv_abs = Path(csv_path).absolute()
         output_abs = Path(output_path).absolute()
+        print(f"  video_abs exists: {video_abs.exists()}")
+        print(f"  csv_abs exists: {csv_abs.exists()}")
 
         # Use the same skeleton_overlay.py script for consistency
-        result = subprocess.run([
+        cmd = [
             sys.executable,
             str(skeleton_script),
             "--video", str(video_abs),
             "--csv", str(csv_abs),
             "--output", str(output_abs),
             "--no-info"  # Same as pipeline script
-        ], capture_output=True, text=True, cwd=str(project_root))
+        ]
+        print(f"  Command: {' '.join(cmd)}")
+
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(project_root))
+
+        print(f"[DEBUG] Subprocess result:")
+        print(f"  returncode: {result.returncode}")
+        print(f"  stdout: {result.stdout[:500] if result.stdout else 'None'}")
+        print(f"  stderr: {result.stderr[:500] if result.stderr else 'None'}")
 
         if result.returncode != 0:
-            print(f"Skeleton overlay stderr: {result.stderr}")
-            print(f"Skeleton overlay stdout: {result.stdout}")
+            print(f"[ERROR] Skeleton overlay failed with code {result.returncode}")
+            print(f"Full stderr: {result.stderr}")
+            print(f"Full stdout: {result.stdout}")
             raise RuntimeError(f"Skeleton overlay failed: {result.stderr}")
+
+        print(f"  output exists after command: {Path(output_path).exists()}")
 
     def cleanup_processor(self):
         """Force cleanup of any processor resources and memory"""

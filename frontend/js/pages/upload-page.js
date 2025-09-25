@@ -114,8 +114,10 @@ async function processVideo() {
     updateStatus('success', 'Processing complete!', 100);
 
     // Show results
+    console.log('Processing complete. Final status:', finalStatus);
+    console.log('URLs from status:', finalStatus.urls);
     showResults(finalStatus, selectedFile);
-    setupDownloadButtons();
+    setupDownloadButtons(finalStatus);
 
   } catch (error) {
     processingComplete = true;
@@ -131,11 +133,15 @@ async function processVideo() {
 /**
  * Set up download buttons for results
  */
-function setupDownloadButtons() {
+function setupDownloadButtons(status) {
   if (!currentJobId) return;
 
-  const urls = getDownloadUrls(currentJobId);
+  // Use URLs from status response if available, otherwise fall back to generated URLs
+  const urls = status?.urls || getDownloadUrls(currentJobId);
   const selectedFile = getSelectedFile();
+
+  console.log('Setting up download buttons with URLs:', urls);
+  console.log('Video URL to be used:', urls.video);
 
   // Set up video player
   setupResultVideo(urls.video);

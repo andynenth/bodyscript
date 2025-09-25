@@ -99,18 +99,33 @@ export function initVideoModal() {
  * @param {string} videoUrl - The video URL
  */
 export function setupResultVideo(videoUrl) {
+  console.log('[setupResultVideo] Called with URL:', videoUrl);
+
   if (!resultVideo) {
     resultVideo = $('#resultVideo');
+    console.log('[setupResultVideo] Found video element:', resultVideo);
   }
 
   if (resultVideo) {
+    console.log('[setupResultVideo] Setting video src to:', videoUrl);
     resultVideo.src = videoUrl;
+    console.log('[setupResultVideo] Video element src is now:', resultVideo.src);
+
+    // Add error handler
+    resultVideo.addEventListener('error', (e) => {
+      console.error('[setupResultVideo] Video load error:', e);
+      console.error('[setupResultVideo] Video error code:', resultVideo.error?.code);
+      console.error('[setupResultVideo] Video error message:', resultVideo.error?.message);
+    }, { once: true });
 
     // Ensure video plays automatically
     resultVideo.addEventListener('loadeddata', () => {
+      console.log('[setupResultVideo] Video loaded, attempting to play');
       resultVideo.play().catch(err => {
         console.log('Auto-play prevented:', err);
       });
     }, { once: true });
+  } else {
+    console.error('[setupResultVideo] Video element not found!');
   }
 }

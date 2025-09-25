@@ -155,6 +155,7 @@ async def upload_page():
 
 
 @app.get("/api/serve/{job_id}/{filename}")
+@app.head("/api/serve/{job_id}/{filename}")
 async def serve_local_file(job_id: str, filename: str):
     """Serve local files for gallery display."""
     from pathlib import Path
@@ -442,6 +443,11 @@ def process_video_task(job_id: str, video_path: str):
         )
 
         if result['success']:
+            # Generate URLs for serving the files
+            video_url = f"/api/serve/{job_id}/output.mp4"
+            preview_url = f"/api/serve/{job_id}/preview.mp4"
+            csv_url = f"/api/serve/{job_id}/pose_data.csv"
+
             jobs_status[job_id].update({
                 "status": "completed",
                 "progress": 100,
@@ -449,7 +455,12 @@ def process_video_task(job_id: str, video_path: str):
                 "completed_at": datetime.now().isoformat(),
                 "output_video": result['output_video'],
                 "pose_data_csv": result['pose_data_csv'],
-                "statistics": result['statistics']
+                "statistics": result['statistics'],
+                "urls": {
+                    "video": video_url,
+                    "preview": preview_url,
+                    "csv": csv_url
+                }
             })
         else:
             jobs_status[job_id].update({
