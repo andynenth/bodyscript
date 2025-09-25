@@ -397,33 +397,32 @@ function filterVideos(filter) {
 
 // Load gallery data from API or use samples
 async function loadGalleryData() {
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    // Try to load from local API
-    try {
-      const response = await fetch(`${window.API_URL || 'http://localhost:8000'}/api/gallery`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.videos && data.videos.length > 0) {
-          // Fix URLs to use backend API URL
-          GALLERY_VIDEOS = data.videos.map(video => ({
-            ...video,
-            thumbnail: video.thumbnail.startsWith('/') ? `${window.API_URL}${video.thumbnail}` : video.thumbnail,
-            preview: video.preview.startsWith('/') ? `${window.API_URL}${video.preview}` : video.preview,
-            full: video.full.startsWith('/') ? `${window.API_URL}${video.full}` : video.full
-          }));
-          currentVideos = [...GALLERY_VIDEOS];
-          // Update window references
-          window.GALLERY_VIDEOS = GALLERY_VIDEOS;
-          window.currentVideos = currentVideos;
-          return;
-        }
+  // Always try to load from API first (works for localhost, IPs, and domains)
+  try {
+    const response = await fetch(`${window.API_URL || 'http://localhost:8000'}/api/gallery`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.videos && data.videos.length > 0) {
+        // Fix URLs to use backend API URL
+        GALLERY_VIDEOS = data.videos.map(video => ({
+          ...video,
+          thumbnail: video.thumbnail.startsWith('/') ? `${window.API_URL}${video.thumbnail}` : video.thumbnail,
+          preview: video.preview.startsWith('/') ? `${window.API_URL}${video.preview}` : video.preview,
+          full: video.full.startsWith('/') ? `${window.API_URL}${video.full}` : video.full
+        }));
+        currentVideos = [...GALLERY_VIDEOS];
+        // Update window references
+        window.GALLERY_VIDEOS = GALLERY_VIDEOS;
+        window.currentVideos = currentVideos;
+        return;
       }
-    } catch (error) {
-      console.log('Could not load gallery from API:', error);
     }
+  } catch (error) {
+    console.log('Could not load gallery from API:', error);
   }
 
-  // Fall back to sample data
+  // Fall back to sample data only if API fails
+  console.log('Using sample data as fallback');
   GALLERY_VIDEOS = SAMPLE_VIDEOS;
   currentVideos = [...GALLERY_VIDEOS];
   // Update window references

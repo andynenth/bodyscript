@@ -1,12 +1,12 @@
 version: '3.8'
 
 services:
-  bodyscript:
+  bodyscript-api:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${APP_PORT:-8000}:8000"
+      - "8000:8000"  # Only expose on localhost for Nginx proxy
     environment:
       # Core settings
       - ENVIRONMENT=${ENVIRONMENT:-development}
@@ -17,16 +17,18 @@ services:
       - ADMIN_TOKEN=${ADMIN_TOKEN}
       # Memory management
       - MEMORY_LIMIT_MB=${MEMORY_LIMIT_MB:-400}
+      # Tell FastAPI not to serve static files
+      - SERVE_STATIC=false
       # R2 Storage (optional)
       - R2_ACCOUNT_ID=${R2_ACCOUNT_ID:-}
       - R2_ACCESS_KEY=${R2_ACCESS_KEY:-}
       - R2_SECRET_KEY=${R2_SECRET_KEY:-}
     volumes:
-      # Development: mount source for hot reload
+      # Only mount backend code
       - ./backend:/app:${MOUNT_MODE:-rw}
-      - ./frontend:/frontend:${MOUNT_MODE:-ro}
-      # Comment out the temp_data volume to use local backend/temp files
-      # - temp_data:/app/temp
+      - ./cli:/cli:ro
+      # Persistent volume for temp data
+      - temp_data:/app/temp
     restart: ${RESTART_POLICY:-no}
     mem_limit: ${MEMORY_LIMIT:-800m}
     memswap_limit: ${MEMORY_SWAP_LIMIT:-1g}
@@ -37,6 +39,12 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - bodyscript-network
+
+networks:
+  bodyscript-network:
+    driver: bridge
 
 volumes:
   temp_data:

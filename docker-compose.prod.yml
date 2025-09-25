@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  api:
+    image: bodyscript:latest
+    container_name: bodyscript-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - API_BASE_URL=${API_BASE_URL:-https://bodyscript.andynenth.dev}
+      - FRONTEND_URL=${FRONTEND_URL:-https://bodyscript.andynenth.dev}
+      - PROCESSING_MAX_SIZE_MB=${PROCESSING_MAX_SIZE_MB:-50}
+      - PROCESSING_TIMEOUT_SECONDS=${PROCESSING_TIMEOUT_SECONDS:-300}
+      - SERVE_STATIC=false  # Nginx serves static files in production
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Persistent data volume for processed videos and temp files
+      - bodyscript_data:/app/temp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Memory limits for t2.micro (1GB RAM)
+    deploy:
+      resources:
+        limits:
+          memory: 768M  # Leave ~256MB for OS and Nginx
+        reservations:
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  bodyscript_data:
+    driver: local

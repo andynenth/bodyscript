@@ -1,0 +1,40 @@
+BodyScript EC2 Instance Information
+====================================
+Created: Wed Sep 24 18:11:42 PDT 2025
+
+Instance Details:
+-----------------
+Instance ID:     i-0b748802dccd19026
+Instance Type:   t2.micro
+Region:          us-east-1
+Public IP:       98.81.229.113
+Public DNS:      ec2-98-81-229-113.compute-1.amazonaws.com
+Security Group:  sg-03770800e57cf691a
+
+SSH Access:
+-----------
+ssh -i /Users/nrw/.ssh/bodyscript-key.pem ubuntu@98.81.229.113
+
+Deployment:
+-----------
+1. Update DNS record for bodyscript.andynenth.dev to point to: 98.81.229.113
+
+2. Build the application:
+   ./scripts/build-prod.sh
+
+3. Deploy to EC2:
+   SSH_KEY=/Users/nrw/.ssh/bodyscript-key.pem ./scripts/deploy-ec2.sh 98.81.229.113
+
+Useful Commands:
+----------------
+# Check instance status
+aws ec2 describe-instances --instance-ids i-0b748802dccd19026 --region us-east-1
+
+# Stop instance (to save costs)
+aws ec2 stop-instances --instance-ids i-0b748802dccd19026 --region us-east-1
+
+# Start instance
+aws ec2 start-instances --instance-ids i-0b748802dccd19026 --region us-east-1
+
+# Terminate instance (permanent deletion)
+aws ec2 terminate-instances --instance-ids i-0b748802dccd19026 --region us-east-1

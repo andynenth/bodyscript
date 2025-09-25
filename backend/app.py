@@ -148,6 +148,7 @@ async def serve_local_file(job_id: str, filename: str):
     """Serve local files for gallery display."""
     from pathlib import Path
 
+    # Simple path - works for both local and Docker
     file_path = Path("temp") / job_id / filename
 
     if not file_path.exists():
@@ -172,7 +173,7 @@ async def get_gallery():
     import json
     from pathlib import Path
 
-    # Check for local gallery.json file
+    # Simple path - works for both local and Docker
     gallery_file = Path("temp") / "gallery.json"
 
     if gallery_file.exists():
@@ -721,9 +722,17 @@ async def startup_event():
 
 
 # Mount frontend as static files (must be last to avoid overriding API routes)
-frontend_path = Path(__file__).parent.parent / "frontend"
-if frontend_path.exists():
-    app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
+# Can be disabled when using Nginx to serve static files
+serve_static = os.getenv('SERVE_STATIC', 'true').lower() == 'true'
+if serve_static:
+    frontend_path = Path(__file__).parent.parent / "frontend"
+    if frontend_path.exists():
+        app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
+        print("Frontend static files mounted at /")
+    else:
+        print(f"Warning: Frontend path not found at {frontend_path}")
+else:
+    print("Static file serving disabled (using external web server)")
 
 
 if __name__ == "__main__":
