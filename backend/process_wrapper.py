@@ -233,7 +233,11 @@ class WebVideoProcessor:
                 print(f"Warning: Skeleton overlay failed: {e}")
                 print("Using trimmed video as output instead")
                 # Fall back to using the trimmed video as output
-                import shutil
+                shutil.copy2(trimmed_video, output_video)
+
+            # Extra safety check - ensure output.mp4 exists
+            if not Path(output_video).exists():
+                print("Warning: Output video not created, using trimmed video as fallback")
                 shutil.copy2(trimmed_video, output_video)
 
             # Step 6: Generate thumbnail and preview
