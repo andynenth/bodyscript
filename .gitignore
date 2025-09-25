@@ -96,6 +96,10 @@ output/reports/*
 *_backup_*.tar.gz
 *_archive_*.tar.gz
 
+# Data archives
+temp-data.tar.gz
+bodyscript-*.tar.gz
+
 # Environment variables
 .env
 .env.local

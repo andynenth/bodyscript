@@ -71,20 +71,21 @@ const Config = {
 window.API_URL = (() => {
   const hostname = window.location.hostname;
   const port = window.location.port;
+  const protocol = window.location.protocol;
 
   // Local development
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return `http://localhost:${port || '8000'}`;
   }
 
-  // Production EC2
-  if (hostname.includes('bodyscript')) {
-    // Docker on port 8000
-    return `http://${hostname}:8000`;
+  // Production with HTTPS (Nginx reverse proxy handles port 8000 internally)
+  if (hostname.includes('bodyscript') || hostname.includes('andynenth')) {
+    // Use same protocol as the page (HTTPS) and no port (Nginx handles it)
+    return `${protocol}//${hostname}`;
   }
 
   // Fallback: same origin
-  return `${window.location.protocol}//${hostname}${port ? ':' + port : ''}`;
+  return `${protocol}//${hostname}${port ? ':' + port : ''}`;
 })();
 
 console.log('API URL configured as:', window.API_URL);
