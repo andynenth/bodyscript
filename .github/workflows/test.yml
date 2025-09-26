@@ -27,7 +27,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           ffmpeg \
-          libgl1-mesa-glx \
+          libgl1 \
           libglib2.0-0 \
           libsm6 \
           libxext6 \
@@ -42,7 +42,7 @@ jobs:
     - name: Test frame extraction
       run: |
         echo "Testing frame extraction utility..."
-        python extract_frames.py --help || echo "extract_frames.py not found"
+        python extract_frames.py 2>&1 | head -5 || echo "extract_frames.py not found"
 
     - name: Test MediaPipe import
       run: |
