@@ -163,9 +163,10 @@ def create_overlay_video(video_path: str,
     print(f"Video info: {width}x{height} @ {fps:.1f} FPS, {total_frames} frames")
 
     # Create video writer with compatible codec
-    # Use mp4v codec which works reliably across platforms
+    # Use mp4v which is universally supported by OpenCV
+    # The backend will convert to H.264 using ffmpeg afterward
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    print("Using mp4v codec for compatibility")
+    print("Using mp4v codec for OpenCV compatibility (will convert to H.264 later)")
 
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 

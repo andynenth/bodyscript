@@ -26,8 +26,7 @@ import cv2
 import pandas as pd
 from datetime import datetime
 
-# Import storage and video utilities
-from storage_r2 import r2_storage
+# Import video utilities
 from video_utils import generate_thumbnail, generate_preview, get_video_metadata
 
 
@@ -250,44 +249,43 @@ class WebVideoProcessor:
             generate_thumbnail(output_video, thumbnail_path, size=(405, 720))
             generate_preview(output_video, preview_path, duration=3, quality='low')
 
-            # Step 7: Upload to R2 if configured
-            urls = {}
-            if r2_storage.is_configured():
-                if progress_callback:
-                    progress_callback(90, "Uploading to cloud storage...")
+            # Step 7: Create metadata for admin page
+            if progress_callback:
+                progress_callback(90, "Creating metadata...")
 
-                # Upload all generated files
-                urls = {
-                    'thumbnail': r2_storage.upload_file(thumbnail_path, f"{job_id}/thumbnail.jpg"),
-                    'preview': r2_storage.upload_file(preview_path, f"{job_id}/preview.mp4"),
-                    'full': r2_storage.upload_file(output_video, f"{job_id}/full.mp4"),
-                    'csv': r2_storage.upload_file(csv_path, f"{job_id}/pose_data.csv")
-                }
+            # Create local URLs for serving files
+            urls = {
+                'thumbnail': f"/api/serve/{job_id}/thumbnail.jpg",
+                'preview': f"/api/serve/{job_id}/preview.mp4",
+                'full': f"/api/serve/{job_id}/output.mp4",
+                'csv': f"/api/serve/{job_id}/pose_data.csv"
+            }
 
-                # Create and upload metadata
-                metadata = {
-                    'job_id': job_id,
-                    'processed_at': datetime.now().isoformat(),
-                    'statistics': {
-                        'frames_processed': frames_extracted,
-                        'average_quality': float(avg_quality),
-                        'detection_rate': float(detection_rate),
-                        'processing_time': time.time() - start_time,
-                        'processing_mode': mode,
-                        'video_was_trimmed': trim_info['was_trimmed'],
-                        'video_was_resized': was_resized,
-                        'original_duration': trim_info['original_duration'],
-                        'processed_duration': trim_info['trimmed_duration']
-                    },
-                    'urls': urls,
-                    'video_info': get_video_metadata(output_video)
-                }
+            # Always create metadata for admin page
+            metadata = {
+                'job_id': job_id,
+                'processed_at': datetime.now().isoformat(),
+                'statistics': {
+                    'frames_processed': frames_extracted,
+                    'average_quality': float(avg_quality),
+                    'detection_rate': float(detection_rate),
+                    'processing_time': time.time() - start_time,
+                    'processing_mode': mode,
+                    'video_was_trimmed': trim_info['was_trimmed'],
+                    'video_was_resized': was_resized,
+                    'original_duration': trim_info['original_duration'],
+                    'processed_duration': trim_info['trimmed_duration']
+                },
+                'urls': urls,
+                'video_info': get_video_metadata(output_video)
+            }
 
-                metadata_path = str(job_dir / "metadata.json")
-                with open(metadata_path, 'w') as f:
-                    json.dump(metadata, f, indent=2)
+            # Save metadata locally for admin page
+            metadata_path = str(job_dir / "metadata.json")
+            with open(metadata_path, 'w') as f:
+                json.dump(metadata, f, indent=2)
 
-                r2_storage.upload_file(metadata_path, f"{job_id}/metadata.json")
+            print(f"[DEBUG] Metadata saved to: {metadata_path}")
 
             # Step 8: Clean up frames to save space
             shutil.rmtree(frames_dir, ignore_errors=True)
@@ -306,7 +304,7 @@ class WebVideoProcessor:
                 'job_id': job_id,
                 'output_video': output_video,
                 'pose_data_csv': csv_path,
-                'urls': urls,  # Include R2 URLs
+                'urls': urls,  # Include local URLs
                 'statistics': {
                     'frames_processed': frames_extracted,
                     'average_quality': float(avg_quality),
@@ -352,13 +350,15 @@ class WebVideoProcessor:
         print(f"  video_abs exists: {video_abs.exists()}")
         print(f"  csv_abs exists: {csv_abs.exists()}")
 
-        # Use the same skeleton_overlay.py script for consistency
+        # First create the skeleton overlay video (may use any codec)
+        temp_output = str(output_abs) + ".temp.mp4"
+
         cmd = [
             sys.executable,
             str(skeleton_script),
             "--video", str(video_abs),
             "--csv", str(csv_abs),
-            "--output", str(output_abs),
+            "--output", temp_output,
             "--no-info"  # Same as pipeline script
         ]
         print(f"  Command: {' '.join(cmd)}")
@@ -376,7 +376,50 @@ class WebVideoProcessor:
             print(f"Full stdout: {result.stdout}")
             raise RuntimeError(f"Skeleton overlay failed: {result.stderr}")
 
-        print(f"  output exists after command: {Path(output_path).exists()}")
+        # Check if temp output was created
+        if not Path(temp_output).exists():
+            print(f"[ERROR] Skeleton overlay did not create output file: {temp_output}")
+            print(f"[ERROR] Falling back to trimmed video")
+            shutil.copy2(str(video_abs), str(output_abs))
+            return
+
+        print(f"[DEBUG] Temp skeleton video created successfully: {Path(temp_output).stat().st_size} bytes")
+
+        # Now convert to browser-compatible H.264 using ffmpeg
+        print(f"[DEBUG] Converting to browser-compatible H.264...")
+        ffmpeg_cmd = [
+            "ffmpeg", "-i", temp_output,
+            "-c:v", "libx264",  # Use H.264 codec
+            "-preset", "fast",  # Fast encoding
+            "-crf", "23",       # Good quality
+            "-pix_fmt", "yuv420p",  # Compatible pixel format
+            "-movflags", "+faststart",  # Enable fast streaming
+            "-y",  # Overwrite output
+            str(output_abs)
+        ]
+
+        print(f"  FFmpeg command: {' '.join(ffmpeg_cmd)}")
+        ffmpeg_result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True)
+
+        if ffmpeg_result.returncode == 0:
+            print(f"[DEBUG] Successfully converted to H.264")
+            print(f"[DEBUG] Final output size: {Path(output_abs).stat().st_size} bytes")
+            # Remove temp file
+            if Path(temp_output).exists():
+                Path(temp_output).unlink()
+        else:
+            print(f"[WARNING] FFmpeg conversion failed (code {ffmpeg_result.returncode})")
+            print(f"  stderr: {ffmpeg_result.stderr}")
+            print(f"  stdout: {ffmpeg_result.stdout[:500]}")
+            # Fall back to original file
+            if Path(temp_output).exists():
+                print(f"[WARNING] Using mp4v version (may not play in some browsers)")
+                shutil.move(temp_output, str(output_abs))
+            else:
+                print(f"[ERROR] No output video available, using trimmed video")
+                shutil.copy2(str(video_abs), str(output_abs))
+
+        print(f"  output exists after processing: {Path(output_path).exists()}")
 
     def cleanup_processor(self):
         """Force cleanup of any processor resources and memory"""

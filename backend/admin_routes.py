@@ -5,10 +5,10 @@ Admin routes for gallery curation and video management
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List, Optional, Dict
 from datetime import datetime
+from pathlib import Path
 import os
 import json
 
-from storage_r2 import r2_storage
 
 # Create router
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -38,97 +38,90 @@ async def list_pending_videos(auth: bool = Depends(verify_admin)):
     # Check environment to decide source
     is_development = os.getenv('ENVIRONMENT', 'development') == 'development'
 
-    # In development, prefer local files even if R2 is configured
-    if is_development or not r2_storage.is_configured():
-        # Load from local temp directory
-        from pathlib import Path
-        import json
+    # Always load from local temp directory
 
-        # Load list of already approved videos
-        approved_file = Path("temp") / "approved_videos.json"
-        approved_videos = set()
-        if approved_file.exists():
-            try:
-                with open(approved_file) as f:
-                    approved_data = json.load(f)
-                    approved_videos = set(approved_data.get('approved', []))
-            except:
-                pass
+    # Load list of already approved videos
+    approved_file = Path("temp") / "approved_videos.json"
+    approved_videos = set()
+    if approved_file.exists():
+        try:
+            with open(approved_file) as f:
+                approved_data = json.load(f)
+                approved_videos = set(approved_data.get('approved', []))
+        except:
+            pass
 
-        temp_dir = Path("temp")
-        if temp_dir.exists():
-            for job_dir in temp_dir.iterdir():
-                if job_dir.is_dir() and not job_dir.name.startswith('.'):
-                    # Check for metadata file
-                    metadata_file = job_dir / "metadata.json"
-                    if metadata_file.exists():
-                        try:
-                            with open(metadata_file) as f:
-                                metadata = json.load(f)
-                                # Add job_id if not present
-                                metadata['job_id'] = job_dir.name
-                                # Add URLs for local files
-                                metadata['urls'] = {
-                                    'thumbnail': f"/api/serve/{job_dir.name}/thumbnail.jpg",
-                                    'preview': f"/api/serve/{job_dir.name}/preview.mp4",
-                                    'full': f"/api/serve/{job_dir.name}/output.mp4"
-                                }
-                                # Mark if already approved
-                                metadata['is_approved'] = job_dir.name in approved_videos
+    temp_dir = Path("temp")
+    if temp_dir.exists():
+        for job_dir in temp_dir.iterdir():
+            if job_dir.is_dir() and not job_dir.name.startswith('.'):
+                # Check for metadata file
+                metadata_file = job_dir / "metadata.json"
+                if metadata_file.exists():
+                    try:
+                        with open(metadata_file) as f:
+                            metadata = json.load(f)
+                            # Add job_id if not present
+                            metadata['job_id'] = job_dir.name
+                            # Add URLs for local files
+                            metadata['urls'] = {
+                                'thumbnail': f"/api/serve/{job_dir.name}/thumbnail.jpg",
+                                'preview': f"/api/serve/{job_dir.name}/preview.mp4",
+                                'full': f"/api/serve/{job_dir.name}/output.mp4"
+                            }
+                            # Mark if already approved
+                            metadata['is_approved'] = job_dir.name in approved_videos
 
-                                # Load saved name and category (check both gallery and a separate metadata file)
-                                # First check gallery.json for approved videos
-                                gallery_file = Path("temp") / "gallery.json"
-                                if gallery_file.exists():
-                                    try:
-                                        with open(gallery_file) as f:
-                                            gallery_data = json.load(f)
-                                            for video in gallery_data.get('videos', []):
-                                                if video.get('job_id') == job_dir.name:
-                                                    metadata['saved_name'] = video.get('id', '')
-                                                    metadata['saved_category'] = video.get('category', '')
-                                                    metadata['saved_title'] = video.get('title', '')
-                                                    break
-                                    except:
-                                        pass
+                            # Load saved name and category (check both gallery and a separate metadata file)
+                            # First check gallery.json for approved videos
+                            gallery_file = Path("temp") / "gallery.json"
+                            if gallery_file.exists():
+                                try:
+                                    with open(gallery_file) as f:
+                                        gallery_data = json.load(f)
+                                        for video in gallery_data.get('videos', []):
+                                            if video.get('job_id') == job_dir.name:
+                                                metadata['saved_name'] = video.get('id', '')
+                                                metadata['saved_category'] = video.get('category', '')
+                                                metadata['saved_title'] = video.get('title', '')
+                                                break
+                                except:
+                                    pass
 
-                                # Also check for saved metadata file (for unapproved videos that had names before)
-                                video_metadata_file = Path("temp") / "video_metadata.json"
-                                if video_metadata_file.exists() and 'saved_name' not in metadata:
-                                    try:
-                                        with open(video_metadata_file) as f:
-                                            video_metadata = json.load(f)
-                                            if job_dir.name in video_metadata:
-                                                metadata['saved_name'] = video_metadata[job_dir.name].get('name', '')
-                                                metadata['saved_category'] = video_metadata[job_dir.name].get('category', '')
-                                    except:
-                                        pass
+                            # Also check for saved metadata file (for unapproved videos that had names before)
+                            video_metadata_file = Path("temp") / "video_metadata.json"
+                            if video_metadata_file.exists() and 'saved_name' not in metadata:
+                                try:
+                                    with open(video_metadata_file) as f:
+                                        video_metadata = json.load(f)
+                                        if job_dir.name in video_metadata:
+                                            metadata['saved_name'] = video_metadata[job_dir.name].get('name', '')
+                                            metadata['saved_category'] = video_metadata[job_dir.name].get('category', '')
+                                except:
+                                    pass
 
-                                videos.append(metadata)
-                        except Exception as e:
-                            print(f"Error loading metadata for {job_dir.name}: {e}")
-                            # Create basic metadata if file doesn't exist or is invalid
-                            videos.append({
-                                'job_id': job_dir.name,
-                                'processed_at': datetime.now().isoformat(),
-                                'statistics': {
-                                    'detection_rate': 0.8,
-                                    'average_quality': 0.75
-                                },
-                                'video_info': {
-                                    'duration': 15,
-                                    'size': 0
-                                },
-                                'urls': {
-                                    'thumbnail': f"/api/serve/{job_dir.name}/thumbnail.jpg",
-                                    'preview': f"/api/serve/{job_dir.name}/preview.mp4",
-                                    'full': f"/api/serve/{job_dir.name}/output.mp4"
-                                },
-                                'is_approved': job_dir.name in approved_videos
-                            })
-    else:
-        # In production, use R2 storage
-        videos = r2_storage.list_pending_uploads()
+                            videos.append(metadata)
+                    except Exception as e:
+                        print(f"Error loading metadata for {job_dir.name}: {e}")
+                        # Create basic metadata if file doesn't exist or is invalid
+                        videos.append({
+                            'job_id': job_dir.name,
+                            'processed_at': datetime.now().isoformat(),
+                            'statistics': {
+                                'detection_rate': 0.8,
+                                'average_quality': 0.75
+                            },
+                            'video_info': {
+                                'duration': 15,
+                                'size': 0
+                            },
+                            'urls': {
+                                'thumbnail': f"/api/serve/{job_dir.name}/thumbnail.jpg",
+                                'preview': f"/api/serve/{job_dir.name}/preview.mp4",
+                                'full': f"/api/serve/{job_dir.name}/output.mp4"
+                            },
+                            'is_approved': job_dir.name in approved_videos
+                        })
 
     # Sort by processed date (newest first)
     videos.sort(key=lambda x: x.get('processed_at', ''), reverse=True)
@@ -367,10 +360,6 @@ async def reject_video(job_id: str, auth: bool = Depends(verify_admin)):
     import shutil
     from pathlib import Path
 
-    # Delete from R2 if configured
-    r2_deleted = False
-    if r2_storage.is_configured():
-        r2_deleted = r2_storage.delete_upload(job_id)
 
     # Always delete local files
     local_path = Path("temp") / job_id
@@ -382,20 +371,11 @@ async def reject_video(job_id: str, auth: bool = Depends(verify_admin)):
         except Exception as e:
             print(f"Error deleting local files: {e}")
 
-    if r2_storage.is_configured():
-        # Production mode - both should be deleted
-        if r2_deleted and local_deleted:
-            return {'success': True, 'message': f"Video {job_id} deleted from cloud and local storage"}
-        elif r2_deleted:
-            return {'success': True, 'message': f"Video {job_id} deleted from cloud (no local files found)"}
-        else:
-            raise HTTPException(status_code=500, detail="Failed to delete video from cloud")
+    # Check if local deletion succeeded
+    if local_deleted:
+        return {'success': True, 'message': f"Video {job_id} deleted from local storage"}
     else:
-        # Local mode - only local files matter
-        if local_deleted:
-            return {'success': True, 'message': f"Video {job_id} deleted from local storage"}
-        else:
-            return {'success': True, 'message': f"Video {job_id} not found in local storage"}
+        raise HTTPException(status_code=404, detail="Video not found")
 
 
 @router.get("/gallery-stats")
@@ -407,23 +387,37 @@ async def get_gallery_stats(auth: bool = Depends(verify_admin)):
         Statistics about storage usage and content
     """
     try:
-        # Get pending uploads count
-        pending_videos = r2_storage.list_pending_uploads()
-        pending_count = len(pending_videos)
+        # Get pending uploads count from local temp directory
+        from pathlib import Path
+        pending_count = 0
+        pending_size = 0
+        temp_dir = Path("temp")
+        if temp_dir.exists():
+            for job_dir in temp_dir.iterdir():
+                if job_dir.is_dir() and not job_dir.name.startswith('.'):
+                    metadata_file = job_dir / "metadata.json"
+                    if metadata_file.exists():
+                        pending_count += 1
+                        try:
+                            with open(metadata_file) as f:
+                                metadata = json.load(f)
+                                video_info = metadata.get('video_info', {})
+                                pending_size += video_info.get('size', 0)
+                        except:
+                            pass
 
-        # Calculate total pending size (estimate)
-        pending_size = sum(
-            video.get('video_info', {}).get('size', 0)
-            for video in pending_videos
-        ) / (1024 * 1024)  # Convert to MB
+        pending_size = pending_size / (1024 * 1024)  # Convert to MB
 
-        # Get gallery videos count (would need to download gallery.json)
+        # Get gallery videos count
         gallery_count = 0
-        try:
-            # This would need implementation in r2_storage
-            pass
-        except:
-            pass
+        gallery_file = Path("temp") / "gallery.json"
+        if gallery_file.exists():
+            try:
+                with open(gallery_file) as f:
+                    gallery_data = json.load(f)
+                    gallery_count = len(gallery_data.get('videos', []))
+            except:
+                pass
 
         return {
             'pending_videos': pending_count,
@@ -462,42 +456,23 @@ async def cleanup_old_uploads(
         deleted_count = 0
         cutoff_date = datetime.now() - timedelta(days=days_old)
 
-        if r2_storage.is_configured():
-            # Production: Clean up R2 and local
-            pending_videos = r2_storage.list_pending_uploads()
-
-            for video in pending_videos:
-                try:
-                    processed_at = datetime.fromisoformat(video.get('processed_at', ''))
-                    if processed_at < cutoff_date:
-                        job_id = video['job_id']
-                        # Delete from R2
-                        if r2_storage.delete_upload(job_id):
-                            deleted_count += 1
-                        # Also delete local files
-                        local_path = Path("temp") / job_id
-                        if local_path.exists():
-                            shutil.rmtree(local_path, ignore_errors=True)
-                except:
-                    continue
-        else:
-            # Local mode: Clean up local temp directory
-            temp_dir = Path("temp")
-            if temp_dir.exists():
-                for job_dir in temp_dir.iterdir():
-                    if job_dir.is_dir():
-                        try:
-                            # Check metadata file for date
-                            metadata_file = job_dir / "metadata.json"
-                            if metadata_file.exists():
-                                with open(metadata_file) as f:
-                                    metadata = json.load(f)
-                                processed_at = datetime.fromisoformat(metadata.get('processed_at', ''))
-                                if processed_at < cutoff_date:
-                                    shutil.rmtree(job_dir)
-                                    deleted_count += 1
-                        except:
-                            continue
+        # Clean up local temp directory
+        temp_dir = Path("temp")
+        if temp_dir.exists():
+            for job_dir in temp_dir.iterdir():
+                if job_dir.is_dir() and not job_dir.name.startswith('.'):
+                    try:
+                        # Check metadata file for date
+                        metadata_file = job_dir / "metadata.json"
+                        if metadata_file.exists():
+                            with open(metadata_file) as f:
+                                metadata = json.load(f)
+                            processed_at = datetime.fromisoformat(metadata.get('processed_at', ''))
+                            if processed_at < cutoff_date:
+                                shutil.rmtree(job_dir)
+                                deleted_count += 1
+                    except:
+                        continue
 
         return {
             'success': True,
